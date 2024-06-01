@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -87,11 +88,11 @@ public class UserService {
     }
 
     boolean isNameEmpty(String name) {
-        return name == null || name.isBlank();
+        return Objects.isNull(name) || name.isBlank();
     }
 
     boolean isBirthdayNotValid(LocalDate birthday) {
-        return !LocalDate.now().isAfter(birthday);
+        return Objects.isNull(birthday) || !LocalDate.now().isAfter(birthday);
     }
 
     long getNextID() {
