@@ -15,9 +15,9 @@ public class User {
     @Email
     String email;
     @NotBlank
-    @Pattern(regexp = "[a-zA-Z0-9]+")
+    @Pattern(regexp = "[^ ]+")
     String login;
-    @Pattern(regexp = "[a-zA-Z0-9 ]+")
+    @Pattern(regexp = "[a-zA-Z0-9. ]+")
     String name;
     @NotNull
     @Past
