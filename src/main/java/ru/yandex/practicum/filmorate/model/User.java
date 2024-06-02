@@ -1,9 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
@@ -18,8 +15,9 @@ public class User {
     @Email
     String email;
     @NotBlank
+    @Pattern(regexp = "[a-zA-Z0-9]+")
     String login;
-    @NotNull
+    @Pattern(regexp = "[a-zA-Z0-9 ]+")
     String name;
     @NotNull
     @Past

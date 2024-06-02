@@ -84,7 +84,7 @@ public class UserService {
     }
 
     boolean isLoginNotValid(String login) {
-        return login.isBlank() || login.contains(" ");
+        return login.isBlank();
     }
 
     boolean isNameEmpty(String name) {
@@ -92,7 +92,7 @@ public class UserService {
     }
 
     boolean isBirthdayNotValid(LocalDate birthday) {
-        return Objects.isNull(birthday) || !LocalDate.now().isAfter(birthday);
+        return Objects.isNull(birthday);
     }
 
     long getNextID() {
