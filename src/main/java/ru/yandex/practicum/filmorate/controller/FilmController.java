@@ -19,6 +19,7 @@ import java.util.Optional;
 @RequestMapping("/films")
 public class FilmController {
     final FilmService filmService;
+    final String likePath = "/{id}/like";
 
     @GetMapping
     public ResponseEntity<Collection<Film>> getFilms() {
@@ -41,14 +42,14 @@ public class FilmController {
                 .body(filmService.updateFilm(film));
     }
 
-    @PutMapping("/{id}/like/{userId}")
+    @PutMapping(likePath + "/{userId}")
     public ResponseEntity<Film> likeFilm(@PathVariable long id, @PathVariable long userId) {
         return ResponseEntity
                 .status(200)
                 .body(filmService.likeFilm(id, userId));
     }
 
-    @DeleteMapping("/{id}/like/{userId}")
+    @DeleteMapping(likePath + "/{userId}")
     public ResponseEntity<Film> removeLike(@PathVariable long id, @PathVariable long userId) {
         return ResponseEntity
                 .status(200)

@@ -4,9 +4,9 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Data
 public class ErrorResponse {
-    final String error;
-    final String description;
+    String error;
+    String description;
 }

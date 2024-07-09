@@ -16,7 +16,7 @@ import java.util.Objects;
 public class FilmValidator {
     public static void validate(Film film) {
         if (FilmValidator.isNameNotValid(film.getName())) {
-            throw new ValidationException("Name should not be empty");
+            throw new ValidationException(String.format("Name='%s' should not be empty", film.getName()));
         }
         if (isDescriptionNotValid(film.getDescription())) {
             throw new ValidationException("Max description length - 200 symbols");
