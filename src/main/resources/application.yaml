@@ -5,3 +5,6 @@ spring:
 logging:
   level:
     ru.yandex.practicum.filmorate: DEBUG
+    org:
+      zalando:
+        logbook: TRACE
