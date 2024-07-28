@@ -19,11 +19,11 @@ public class User {
     @NotBlank
     @Pattern(regexp = "[^ ]+")
     String login;
-    @Pattern(regexp = "[a-zA-Z0-9. ]+")
+    @Pattern(regexp = "[a-zA-Z0-9. ']+")
     String name;
     @NotNull
     @Past
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     LocalDate birthday;
-    Set<Long> friends = new HashSet<>();
+    Set<User> friends = new HashSet<>();
 }

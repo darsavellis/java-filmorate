@@ -1,9 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,8 +8,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Data
 @EqualsAndHashCode(of = "id")
@@ -27,6 +23,8 @@ public class Film {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     LocalDate releaseDate;
     @Positive
-    int duration;
+    long duration;
+    MpaRating mpa = new MpaRating();
+    Set<Genre> genres = new HashSet<>();
     Set<Long> likes = new HashSet<>();
 }

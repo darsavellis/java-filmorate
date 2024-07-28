@@ -11,8 +11,8 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 @Slf4j
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @UtilityClass
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserValidator {
     public static void validate(User user) {
         if (isEmailNotValid(user.getEmail())) {
