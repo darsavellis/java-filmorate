@@ -32,7 +32,9 @@ public class JdbcFilmRepository implements FilmRepository {
             "release_date = :release_date, duration = :duration, rating_id = :rating_id WHERE id = :id";
     static String FILM_GENRE_DELETE_QUERY = "DELETE FROM film_genre WHERE film_id = :film_id";
     static String FILM_GENRE_INSERT_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES(:film_id, :genre_id)";
-
+    static String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
+            "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
+    static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
@@ -111,8 +113,6 @@ public class JdbcFilmRepository implements FilmRepository {
 
         jdbc.update(FILM_GENRE_DELETE_QUERY, filmGenreParameters);
 
-        String FILM_GENRE_INSERT_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES(:film_id, :genre_id)";
-
         newFilm.getGenres().forEach((genre) -> jdbc.update(
                 FILM_GENRE_INSERT_QUERY, Map.of("film_id", newFilm.getId(), "genre_id", genre.getId())
         ));
@@ -121,16 +121,11 @@ public class JdbcFilmRepository implements FilmRepository {
 
     @Override
     public List<Film> getTop(long count) {
-        String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
-                "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
-
         return jdbc.query(FIND_TOP_WITH_LIMIT_QUERY, Map.of("count", count), filmRowMapper);
     }
 
     @Override
     public boolean delete(long filmId) {
-        String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
-
         int rows = jdbc.update(DELETE_QUERY, Map.of("id", filmId));
         return rows > 0;
     }
