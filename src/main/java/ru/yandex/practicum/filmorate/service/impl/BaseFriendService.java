@@ -15,7 +15,7 @@ import java.util.Collection;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class BaseFriendService implements FriendService {
-    final String USER_ID_S_NOT_FOUND = "User ID=%s not found";
+    static final String USER_ID_S_NOT_FOUND = "User ID=%s not found";
     final UserRepository userRepository;
 
     public User addFriend(long firstUserId, long secondUserId) throws NotFoundException {

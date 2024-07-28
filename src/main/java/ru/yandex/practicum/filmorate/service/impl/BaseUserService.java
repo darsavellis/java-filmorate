@@ -19,7 +19,7 @@ import java.util.Collection;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class BaseUserService implements UserService {
-    public static final String USER_ID_NOT_FOUND = "User ID=%s not found";
+    static final String USER_ID_NOT_FOUND = "User ID=%s not found";
     final UserRepository userRepository;
 
     public Collection<User> getUsers() {

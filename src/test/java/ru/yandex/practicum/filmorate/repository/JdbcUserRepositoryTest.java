@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.dal.impl.mappers.FriendshipRowMapper;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -24,7 +25,10 @@ class JdbcUserRepositoryTest {
     static User getUser() {
         User user = new User();
         user.setId(TEST_USER_ID);
-        user.setEmail("email@email.com");
+        user.setEmail("ivanov@email.com");
+        user.setName("Ivan");
+        user.setBirthday(LocalDate.of(1998, 10, 20));
+        user.setLogin("diamond");
         return user;
     }
 
