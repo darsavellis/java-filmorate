@@ -25,8 +25,8 @@ public class MpaRatingController {
         return ResponseEntity.status(200).body(mpaRatingService.getMpaRatings());
     }
 
-    @GetMapping("/{mpaId}")
-    public ResponseEntity<MpaRating> getMpaRatingById(@PathVariable long mpaId) {
+    @GetMapping("/{mpa-id}")
+    public ResponseEntity<MpaRating> getMpaRatingById(@PathVariable("mpa-id") long mpaId) {
         return ResponseEntity.status(200).body(mpaRatingService.getMpaRatingById(mpaId));
     }
 }

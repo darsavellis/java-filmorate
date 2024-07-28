@@ -28,8 +28,8 @@ public class FilmController {
                 .body(filmService.getFilms());
     }
 
-    @GetMapping("/{filmId}")
-    public ResponseEntity<Film> getFilmById(@PathVariable long filmId) {
+    @GetMapping("/{film-id}")
+    public ResponseEntity<Film> getFilmById(@PathVariable("film-id") long filmId) {
         return ResponseEntity
                 .status(200)
                 .body(filmService.getFilmById(filmId));
@@ -49,15 +49,15 @@ public class FilmController {
                 .body(filmService.updateFilm(film));
     }
 
-    @PutMapping(likePath + "/{userId}")
-    public ResponseEntity<Film> likeFilm(@PathVariable long id, @PathVariable long userId) {
+    @PutMapping(likePath + "/{user-id}")
+    public ResponseEntity<Film> likeFilm(@PathVariable long id, @PathVariable("user-id") long userId) {
         return ResponseEntity
                 .status(200)
                 .body(filmService.likeFilm(id, userId));
     }
 
-    @DeleteMapping(likePath + "/{userId}")
-    public ResponseEntity<Film> removeLike(@PathVariable long id, @PathVariable long userId) {
+    @DeleteMapping(likePath + "/{user-id}")
+    public ResponseEntity<Film> removeLike(@PathVariable long id, @PathVariable("user-id") long userId) {
         return ResponseEntity
                 .status(200)
                 .body(filmService.removeLike(id, userId));
