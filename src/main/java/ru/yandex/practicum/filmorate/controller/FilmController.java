@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.impl.BaseFilmService;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequestMapping("/films")
 public class FilmController {
-    final FilmService filmService;
+    final BaseFilmService filmService;
     final String likePath = "/{id}/like";
 
     @GetMapping
@@ -26,6 +26,13 @@ public class FilmController {
         return ResponseEntity
                 .status(200)
                 .body(filmService.getFilms());
+    }
+
+    @GetMapping("/{film-id}")
+    public ResponseEntity<Film> getFilmById(@PathVariable("film-id") long filmId) {
+        return ResponseEntity
+                .status(200)
+                .body(filmService.getFilmById(filmId));
     }
 
     @PostMapping
@@ -42,15 +49,15 @@ public class FilmController {
                 .body(filmService.updateFilm(film));
     }
 
-    @PutMapping(likePath + "/{userId}")
-    public ResponseEntity<Film> likeFilm(@PathVariable long id, @PathVariable long userId) {
+    @PutMapping(likePath + "/{user-id}")
+    public ResponseEntity<Film> likeFilm(@PathVariable long id, @PathVariable("user-id") long userId) {
         return ResponseEntity
                 .status(200)
                 .body(filmService.likeFilm(id, userId));
     }
 
-    @DeleteMapping(likePath + "/{userId}")
-    public ResponseEntity<Film> removeLike(@PathVariable long id, @PathVariable long userId) {
+    @DeleteMapping(likePath + "/{user-id}")
+    public ResponseEntity<Film> removeLike(@PathVariable long id, @PathVariable("user-id") long userId) {
         return ResponseEntity
                 .status(200)
                 .body(filmService.removeLike(id, userId));
