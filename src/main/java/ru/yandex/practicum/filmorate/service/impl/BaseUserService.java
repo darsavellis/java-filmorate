@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validation.UserValidator;
@@ -30,6 +31,11 @@ public class BaseUserService implements UserService {
     public User getUserById(long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, userId)));
+    }
+
+    @Override
+    public Collection<Event> getEventsOfUser(Long userId) {
+        return userRepository.getUserEvents(userId);
     }
 
     public User createUser(User user) throws ValidationException {

@@ -7,12 +7,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import ru.yandex.practicum.filmorate.dal.*;
+import ru.yandex.practicum.filmorate.dal.FilmRepository;
+import ru.yandex.practicum.filmorate.dal.GenreRepository;
+import ru.yandex.practicum.filmorate.dal.LikeRepository;
+import ru.yandex.practicum.filmorate.dal.MpaRatingRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
 
@@ -109,11 +113,15 @@ public class BaseFilmService implements FilmService {
     }
 
     public Film likeFilm(long filmId, long userId) {
-        return editLike(filmId, userId, likeRepository::addLike);
+        Film res = editLike(filmId, userId, likeRepository::addLike);
+        likeRepository.eventLike(filmId, userId, OperationType.ADD);
+        return res;
     }
 
     public Film removeLike(long filmId, long userId) {
-        return editLike(filmId, userId, likeRepository::removeLike);
+        Film res = editLike(filmId, userId, likeRepository::removeLike);
+        likeRepository.eventLike(filmId, userId, OperationType.REMOVE);
+        return res;
     }
 
     @GetMapping("/popular")
@@ -123,7 +131,9 @@ public class BaseFilmService implements FilmService {
 
     private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
         action.accept(filmId, userId);
-        return getFilmById(filmId);
+        Film res = getFilmById(filmId);
+        likeRepository.eventLike(filmId, userId, OperationType.UPDATE);
+        return res;
     }
 
     private Film mapToSortedFields(Film film) {

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.impl.BaseUserService;
 
@@ -23,6 +24,13 @@ public class UserController {
         return ResponseEntity
                 .status(200)
                 .body(userService.getUsers());
+    }
+
+    @GetMapping("/{id}/feed")
+    public ResponseEntity<Collection<Event>> getEventsList(@PathVariable Long id) {
+        return ResponseEntity
+                .status(200)
+                .body(userService.getEventsOfUser(id));
     }
 
     @PostMapping
