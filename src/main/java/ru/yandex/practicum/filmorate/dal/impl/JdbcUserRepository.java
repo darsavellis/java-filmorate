@@ -9,10 +9,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.FriendshipRowMapper;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Friendship;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -39,8 +41,13 @@ public class JdbcUserRepository implements UserRepository {
     static String CHECK_FRIENDSHIP_STATUS_QUERY = "SELECT * FROM friendships f " +
             "WHERE first_user_id = :first_user_id AND second_user_id = :second_user_id OR " +
             "first_user_id  = :second_user_id AND second_user_id = first_user_id";
+    static String LIST_OF_IDS_RECOMMENDED_FILMS = "SELECT film_id FROM likes " +
+            "WHERE film_id NOT IN (SELECT film_id FROM likes WHERE user_id = :userId) AND user_id = " +
+            "(SELECT user_id FROM likes WHERE film_id IN (SELECT film_id FROM likes WHERE user_id = :userId) " +
+            "AND user_id != :userId GROUP BY user_id ORDER BY COUNT(film_id) DESC LIMIT 1)";
     final NamedParameterJdbcOperations jdbc;
     final UserRowMapper userRowMapper;
+    final FilmRepository filmRepository;
 
     @Override
     public List<User> getAll() {
@@ -149,6 +156,18 @@ public class JdbcUserRepository implements UserRepository {
         Set<User> commonFriends = new HashSet<>(getFriends(firstUserId));
         commonFriends.retainAll(getFriends(secondUserId));
         return commonFriends;
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+        List<Film> forRecommend = new ArrayList<>();
+        List<Long> films = jdbc.queryForList(LIST_OF_IDS_RECOMMENDED_FILMS, Map.of("userId", userId), Long.class);
+        for (Long f : films) {
+            Optional<Film> filmOptional = filmRepository.getById(f);
+            Film film = filmOptional.get();
+            forRecommend.add(film);
+        }
+        return forRecommend;
     }
 
     private Optional<Friendship> getFriendship(long senderId, long receiverId) {
