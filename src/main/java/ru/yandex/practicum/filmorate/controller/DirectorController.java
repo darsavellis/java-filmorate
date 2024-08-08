@@ -21,39 +21,39 @@ public class DirectorController {
     @ResponseBody
     public ResponseEntity<Collection<Director>> getDirectors() {
         return ResponseEntity
-                .status(200)
-                .body(directorService.getDirectors());
+            .status(200)
+            .body(directorService.getDirectors());
     }
 
     @GetMapping("/{director-id}")
     @ResponseBody
     public ResponseEntity<Director> getDirectorById(@PathVariable("director-id") long directorId) {
         return ResponseEntity
-                .status(200)
-                .body(directorService.getDirectorById(directorId));
+            .status(200)
+            .body(directorService.getDirectorById(directorId));
     }
 
     @PostMapping
     @ResponseBody
     public ResponseEntity<Director> createDirector(@RequestBody Director director) {
         return ResponseEntity
-                .status(201)
-                .body(directorService.createDirector(director));
+            .status(201)
+            .body(directorService.createDirector(director));
     }
 
     @PutMapping
     @ResponseBody
     public ResponseEntity<Director> updateDirector(@RequestBody Director director) {
         return ResponseEntity
-                .status(201)
-                .body(directorService.updateDirector(director));
+            .status(201)
+            .body(directorService.updateDirector(director));
     }
 
-    @DeleteMapping("/{director-id")
+    @DeleteMapping("/{director-id}")
     @ResponseBody
     public ResponseEntity<Director> deleteDirector(@PathVariable("director-id") long directorId) {
         return ResponseEntity
-                .status(200)
-                .body(directorService.deleteDirector(directorId));
+            .status(200)
+            .body(directorService.deleteDirector(directorId));
     }
 }

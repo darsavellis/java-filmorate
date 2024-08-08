@@ -22,12 +22,12 @@ import java.util.Optional;
 public class JdbcDirectorRepository implements DirectorRepository {
     static final String FIND_ALL_DIRECTORS = "SELECT * FROM directors";
     static final String FIND_BY_ID_QUERY = "SELECT * FROM directors WHERE id = :id";
-    static final String INSERT_QUERY = "INSERT INTO directors (name, surname) VALUES (:name, :surname)";
-    static final String UPDATE_QUERY = "UPDATE directors SET name = :name, surname = :surname";
-    static final String DELETE_QUERY = "DELETE * FROM directors WHERE id = :id";
+    static final String INSERT_QUERY = "INSERT INTO directors (name) VALUES (:name)";
+    static final String UPDATE_QUERY = "UPDATE directors SET name = :name";
+    static final String DELETE_QUERY = "DELETE FROM directors WHERE id = :id";
 
-    NamedParameterJdbcOperations jdbc;
-    DirectorRowMapper directorRowMapper;
+    final NamedParameterJdbcOperations jdbc;
+    final DirectorRowMapper directorRowMapper;
 
     @Override
     public List<Director> getAll() {
@@ -36,8 +36,12 @@ public class JdbcDirectorRepository implements DirectorRepository {
 
     @Override
     public Optional<Director> getById(long directorId) {
-        Director director = jdbc.queryForObject(FIND_BY_ID_QUERY, Map.of("id", directorId), directorRowMapper);
-        return Optional.ofNullable(director);
+        try {
+            Director director = jdbc.queryForObject(FIND_BY_ID_QUERY, Map.of("id", directorId), directorRowMapper);
+            return Optional.ofNullable(director);
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -45,8 +49,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
         GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
 
         SqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("name", director.getName())
-                .addValue("surname", director.getSurname());
+            .addValue("name", director.getName());
 
         jdbc.update(INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
         long id = generatedKeyHolder.getKeyAs(Long.class);
@@ -59,9 +62,8 @@ public class JdbcDirectorRepository implements DirectorRepository {
     @Override
     public Director update(Director newDirector) {
         SqlParameterSource parameters = new MapSqlParameterSource()
-                .addValue("id", newDirector.getId())
-                .addValue("name", newDirector.getName())
-                .addValue("surname", newDirector.getSurname());
+            .addValue("id", newDirector.getId())
+            .addValue("name", newDirector.getName());
 
         jdbc.update(UPDATE_QUERY, parameters);
         return newDirector;

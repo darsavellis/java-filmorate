@@ -13,5 +13,4 @@ public class Director {
     @NotNull
     @NotBlank
     String name;
-    String surname;
 }

@@ -28,6 +28,7 @@ public class BaseFilmService implements FilmService {
     static final String MPA_RATING_ID_NOT_VALID = "MpaRating ID=%s not valid";
     static final String FILM_ID_NOT_FOUND = "Film ID=%s not found";
     public static final String GENRES_NOT_VALID = "Genres %s not valid";
+
     final FilmRepository filmRepository;
     final MpaRatingRepository mpaRatingRepository;
     final GenreRepository genreRepository;

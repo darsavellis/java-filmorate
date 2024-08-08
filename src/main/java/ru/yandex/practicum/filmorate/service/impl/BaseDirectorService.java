@@ -1,34 +1,49 @@
 package ru.yandex.practicum.filmorate.service.impl;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dal.impl.JdbcDirectorRepository;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 
 import java.util.Collection;
-import java.util.List;
 
+@Service
+@RequiredArgsConstructor
 public class BaseDirectorService implements DirectorService {
+    static final String DIRECTOR_ID_NOT_FOUND = "Director ID=%s not found";
+
+    final JdbcDirectorRepository directorRepository;
+
     @Override
     public Collection<Director> getDirectors() {
-        return List.of();
+        return directorRepository.getAll();
     }
 
     @Override
     public Director getDirectorById(long directorId) {
-        return null;
+        return directorRepository.getById(directorId)
+            .orElseThrow(() -> new NotFoundException(String.format(DIRECTOR_ID_NOT_FOUND, directorId)));
     }
 
     @Override
     public Director createDirector(Director director) {
-        return null;
+        return directorRepository.save(director);
     }
 
     @Override
-    public Director updateDirector(Director director) {
-        return null;
+    public Director updateDirector(Director newDirector) {
+        Director director = directorRepository.getById(newDirector.getId())
+            .orElseThrow(() -> new NotFoundException(String.format(DIRECTOR_ID_NOT_FOUND, newDirector.getId())));
+
+        return directorRepository.update(newDirector);
     }
 
     @Override
     public Director deleteDirector(long directorId) {
-        return null;
+        Director director = getDirectorById(directorId);
+        directorRepository.delete(directorId);
+        return director;
     }
 }
