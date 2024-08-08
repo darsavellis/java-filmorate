@@ -15,11 +15,11 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @RequestMapping("/films")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class FilmController {
     final BaseFilmService filmService;
-    final String likePath = "/{id}/like";
+    final static String LIKE_PATH = "/{id}/like";
 
     @GetMapping
     public ResponseEntity<Collection<Film>> getFilms() {
@@ -49,14 +49,14 @@ public class FilmController {
                 .body(filmService.updateFilm(film));
     }
 
-    @PutMapping(likePath + "/{user-id}")
+    @PutMapping(LIKE_PATH + "/{user-id}")
     public ResponseEntity<Film> likeFilm(@PathVariable long id, @PathVariable("user-id") long userId) {
         return ResponseEntity
                 .status(200)
                 .body(filmService.likeFilm(id, userId));
     }
 
-    @DeleteMapping(likePath + "/{user-id}")
+    @DeleteMapping(LIKE_PATH + "/{user-id}")
     public ResponseEntity<Film> removeLike(@PathVariable long id, @PathVariable("user-id") long userId) {
         return ResponseEntity
                 .status(200)

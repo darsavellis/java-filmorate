@@ -20,21 +20,21 @@ import java.util.*;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcFilmRepository implements FilmRepository {
-    static String FIND_ALL_GENRES_QUERY = "SELECT * FROM genres";
-    static String FIND_ALL_FILMS_QUERY = "SELECT * FROM films";
-    static String FIND_GENRES_BY_FILM_ID_QUERY = "SELECT film_id, genre_id FROM film_genre";
-    static String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = :id";
-    static String FIND_GENRES_QUERY = "SELECT f.genre_id AS id, g.name FROM film_genre AS f " +
+    static final String FIND_ALL_GENRES_QUERY = "SELECT * FROM genres";
+    static final String FIND_ALL_FILMS_QUERY = "SELECT * FROM films";
+    static final String FIND_GENRES_BY_FILM_ID_QUERY = "SELECT film_id, genre_id FROM film_genre";
+    static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = :id";
+    static final String FIND_GENRES_QUERY = "SELECT f.genre_id AS id, g.name FROM film_genre AS f " +
             "JOIN genres g ON g.id = f.genre_id WHERE film_id = :film_id";
-    static String FILM_INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, rating_id) " +
+    static final String FILM_INSERT_QUERY = "INSERT INTO films (name, description, release_date, duration, rating_id) " +
             "VALUES(:name, :description, :release_date, :duration, :rating_id)";
-    static String UPDATE_QUERY = "UPDATE films SET name = :name, description = :description," +
+    static final String UPDATE_QUERY = "UPDATE films SET name = :name, description = :description," +
             "release_date = :release_date, duration = :duration, rating_id = :rating_id WHERE id = :id";
-    static String FILM_GENRE_DELETE_QUERY = "DELETE FROM film_genre WHERE film_id = :film_id";
-    static String FILM_GENRE_INSERT_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES(:film_id, :genre_id)";
-    static String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
+    static final String FILM_GENRE_DELETE_QUERY = "DELETE FROM film_genre WHERE film_id = :film_id";
+    static final String FILM_GENRE_INSERT_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES(:film_id, :genre_id)";
+    static final String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
             "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
-    static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
+    static final String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
