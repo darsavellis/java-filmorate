@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validation.UserValidator;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -43,5 +45,11 @@ public class BaseUserService implements UserService {
                 .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, newUser.getId())));
 
         return userRepository.update(newUser);
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+        userRepository.findById(userId);
+        return userRepository.getRecommendations(userId);
     }
 }

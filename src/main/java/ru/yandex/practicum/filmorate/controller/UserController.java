@@ -6,10 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.impl.BaseUserService;
 
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/users")
@@ -37,5 +39,10 @@ public class UserController {
         return ResponseEntity
                 .status(200)
                 .body(userService.updateUser(user));
+    }
+
+    @GetMapping("{id}/recommendations")
+    public List<Film> getRecommendations(@PathVariable("id") long userId) {
+        return userService.getRecommendations(userId);
     }
 }

@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dal;
 
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
@@ -24,4 +25,6 @@ public interface UserRepository {
     void deleteFriend(long firstUserId, long secondUserId);
 
     Set<User> getCommonFriends(long firstUserId, long secondUserId);
+
+    List<Film> getRecommendations(long userId);
 }
