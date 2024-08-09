@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReviewRepository {
-    Review getReviewById(long reviewId);
+    Optional<Review> getReviewById(long reviewId);
 
     List<Review> getReviewsByFilmId(long filmId, long count);
 
@@ -16,7 +16,7 @@ public interface ReviewRepository {
 
     Review updateReview(Review review);
 
-    Review deleteReview(long reviewId);
+    boolean deleteReview(long reviewId);
 
     Review setLikeReview(long reviewId, long userId, boolean ifPositive);
 

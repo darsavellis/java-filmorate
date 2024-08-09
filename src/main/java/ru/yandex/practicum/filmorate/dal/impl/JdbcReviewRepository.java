@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.ReviewRowMapper;
@@ -32,6 +34,17 @@ public class JdbcReviewRepository implements ReviewRepository {
     private static final String COUNT_FILMS_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
             "AS useful FROM review_user ru JOIN reviews r ON r.id = ru.review_id WHERE r.film_id = :filmId GROUP BY r.id";
 
+    private static final String COUNT_ALL_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
+            "AS useful FROM review_user ru JOIN reviews r ON r.id = ru.review_id GROUP BY r.id";
+
+    private static final String REVIEW_INSERT_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id) " +
+            "VALUES(:content, :is_positive, :user_id, :film_id)";
+
+    private static final String REVIEW_UPDATE_QUERY = "UPDATE reviews SET content = :content, is_positive = :is_positive," +
+            "user_id = :user_id, film_id = :film_id WHERE id = :id";
+
+    private static final String REVIEW_DELETE_QUERY = "DELETE FROM reviews WHERE id = :id";
+
     @Override
     public Optional<Review> getReviewById(long reviewId) {
 
@@ -51,14 +64,14 @@ public class JdbcReviewRepository implements ReviewRepository {
 
     @Override
     public List<Review> getReviewsByFilmId(long filmId, long count) {
-        Map<Long, Long> scoreMap = new HashMap<>(); // мапа пост - рейтинг
+        Map<Long, Long> scoreMap = new HashMap<>(); // мап пост id - рейтинг
         Map<Long, Review> reviewMap = new HashMap<>();
 
-        jdbc.query(COUNT_FILMS_REVIEWS_SCORES, (resultSet) -> {
+        jdbc.query(COUNT_FILMS_REVIEWS_SCORES, Map.of("film_id", filmId), (resultSet) -> {
             scoreMap.put(resultSet.getLong("id"),
                     resultSet.getLong("useful"));
         });
-        jdbc.query(FIND_FILM_REVIEWS_QUERY, reviewRowMapper).forEach((review) -> {
+        jdbc.query(FIND_FILM_REVIEWS_QUERY, Map.of("film_id", filmId, "count", count), reviewRowMapper).forEach((review) -> {
             review.setUseful(scoreMap.get(review.getId()));
             reviewMap.put(review.getId(), review);
         });
@@ -68,22 +81,54 @@ public class JdbcReviewRepository implements ReviewRepository {
 
     @Override
     public List<Review> getAllReviews(long count) {
-        return null;
+        Map<Long, Long> scoreMap = new HashMap<>();
+        Map<Long, Review> reviewMap = new HashMap<>();
+
+        jdbc.query(COUNT_ALL_REVIEWS_SCORES, (resultSet) -> {
+            scoreMap.put(resultSet.getLong("id"),
+                    resultSet.getLong("useful"));
+        });
+        jdbc.query(FIND_ALL_REVIEWS_QUERY, Map.of("count", count), reviewRowMapper).forEach((review) -> {
+            review.setUseful(scoreMap.get(review.getId()));
+            reviewMap.put(review.getId(), review);
+        });
+
+        return new ArrayList<>(reviewMap.values());
     }
 
     @Override
     public Review createReview(Review review) {
-        return null;
+        GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
+        SqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("content", review.getContent())
+                .addValue("film_id", review.getFilmId())
+                .addValue("user_id", review.getUserId())
+                .addValue("is_positive", review.getIsPositive());
+
+        jdbc.update(REVIEW_INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
+
+        long id = generatedKeyHolder.getKeyAs(Long.class);
+        review.setId(id);
+        review.setUseful(0);
+        return review;
     }
 
     @Override
     public Review updateReview(Review review) {
-        return null;
+        GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
+        SqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("content", review.getContent())
+                .addValue("film_id", review.getFilmId())
+                .addValue("user_id", review.getUserId())
+                .addValue("is_positive", review.getIsPositive());
+        jdbc.update(REVIEW_UPDATE_QUERY, parameters);
+        return review;
     }
 
     @Override
-    public Review deleteReview(long reviewId) {
-        return null;
+    public boolean deleteReview(long reviewId) {
+        int rows = jdbc.update(REVIEW_DELETE_QUERY, Map.of("id", reviewId));
+        return rows > 0;
     }
 
     @Override

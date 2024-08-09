@@ -34,7 +34,7 @@ public class JdbcFilmRepository implements FilmRepository {
     static String FILM_GENRE_INSERT_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES(:film_id, :genre_id)";
     static String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
             "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
-    static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
+    static String DELETE_QUERY = "DELETE FROM films WHERE id = :id";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
