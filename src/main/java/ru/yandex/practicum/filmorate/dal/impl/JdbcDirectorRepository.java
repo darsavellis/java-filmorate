@@ -12,9 +12,7 @@ import ru.yandex.practicum.filmorate.dal.DirectorRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,6 +23,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
     static final String INSERT_QUERY = "INSERT INTO directors (name) VALUES (:name)";
     static final String UPDATE_QUERY = "UPDATE directors SET name = :name";
     static final String DELETE_QUERY = "DELETE FROM directors WHERE id = :id";
+    static final String FIND_BY_IDS_QUERY = "SELECT * FROM directors WHERE id IN (:directors)";
 
     final NamedParameterJdbcOperations jdbc;
     final DirectorRowMapper directorRowMapper;
@@ -42,6 +41,14 @@ public class JdbcDirectorRepository implements DirectorRepository {
         } catch (Exception ignored) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public Set<Director> getByIds(List<Long> directorIds) {
+        return new HashSet<>(
+            jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("directors", directorIds),
+                directorRowMapper)
+        );
     }
 
     @Override

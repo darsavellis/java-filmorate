@@ -16,7 +16,7 @@ public interface FilmService {
 
     Film likeFilm(long filmId, long userId);
 
-    Film removeLike(long filmId, long userId);
+    Film deleteLike(long filmId, long userId);
 
     Collection<Film> getMostPopularFilms(Optional<Long> count);
 }
