@@ -52,10 +52,10 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Boolean> deleteReview(@PathVariable long reviewId) {
+    public ResponseEntity<Boolean> deleteReview(@PathVariable long id) {
         return ResponseEntity
                 .status(200)
-                .body(reviewService.deleteReview(reviewId));
+                .body(reviewService.deleteReview(id));
     }
 
     @PutMapping("/{id}/like/{userId}")
