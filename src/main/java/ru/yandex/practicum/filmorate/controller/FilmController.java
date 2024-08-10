@@ -70,4 +70,13 @@ public class FilmController {
             .status(200)
             .body(filmService.getMostPopularFilms(count));
     }
+
+    @GetMapping("/director/{director-id}")
+    @ResponseBody
+    public ResponseEntity<Collection<Film>> getFilmsByDirector(@PathVariable("director-id") long directorId,
+                                                               @RequestParam String sortBy) {
+        return ResponseEntity
+            .status(200)
+            .body(filmService.getFilmsByDirector(directorId, sortBy));
+    }
 }

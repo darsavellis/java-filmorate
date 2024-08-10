@@ -131,4 +131,9 @@ public class BaseFilmService implements FilmService {
             .collect(Collectors.toCollection(LinkedHashSet::new)));
         return film;
     }
+
+    @Override
+    public Collection<Film> getFilmsByDirector(long directorId, String sortBy) {
+        return filmRepository.getByDirectorId(directorId, sortBy);
+    }
 }
