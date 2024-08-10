@@ -13,8 +13,10 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
+import ru.yandex.practicum.filmorate.validation.UserValidator;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -32,6 +34,7 @@ public class BaseFilmService implements FilmService {
     final MpaRatingRepository mpaRatingRepository;
     final GenreRepository genreRepository;
     final LikeRepository likeRepository;
+    final UserRepository userRepository;
 
     public List<Film> getFilms() {
         return filmRepository.getAll().stream().peek(film -> {
@@ -119,6 +122,13 @@ public class BaseFilmService implements FilmService {
     @GetMapping("/popular")
     public List<Film> getMostPopularFilms(@RequestParam Optional<Long> count) {
         return filmRepository.getTop(count.orElse(10L));
+    }
+
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        userRepository.findById(userId);
+        userRepository.findById(friendId);
+        return filmRepository.getCommonFilms(userId, friendId);
     }
 
     private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {

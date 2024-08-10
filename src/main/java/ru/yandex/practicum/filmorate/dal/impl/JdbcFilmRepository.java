@@ -35,6 +35,9 @@ public class JdbcFilmRepository implements FilmRepository {
     static String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
             "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
     static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
+    static String LIST_OF_IDS_COMMON_FILMS = "SELECT film_id FROM likes " +
+            " WHERE film_id = (SELECT film_id FROM likes WHERE user_id = :userId) AND user_id = :friendId " +
+            " GROUP BY film_id ORDER BY COUNT(film_id) DESC ";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
@@ -128,5 +131,18 @@ public class JdbcFilmRepository implements FilmRepository {
     public boolean delete(long filmId) {
         int rows = jdbc.update(DELETE_QUERY, Map.of("id", filmId));
         return rows > 0;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        List<Film> commonFilms = new ArrayList<>();
+        List<Long> films = jdbc.queryForList(LIST_OF_IDS_COMMON_FILMS,
+                Map.of("userId", userId, "friendId", friendId), Long.class);
+        for (Long f : films) {
+            Optional<Film> filmOptional = getById(f);
+            Film film = filmOptional.get();
+            commonFilms.add(film);
+        }
+        return commonFilms;
     }
 }

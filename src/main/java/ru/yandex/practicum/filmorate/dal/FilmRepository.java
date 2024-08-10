@@ -17,4 +17,6 @@ public interface FilmRepository {
     Film update(Film newFilm);
 
     boolean delete(long filmId);
+
+    List<Film> getCommonFilms(long userId, long friendId);
 }
