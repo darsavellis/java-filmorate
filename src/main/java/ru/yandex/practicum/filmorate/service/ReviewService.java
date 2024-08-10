@@ -14,7 +14,7 @@ public interface ReviewService {
 
     Review updateReview(Review review);
 
-    Review deleteReview(long reviewId);
+    boolean deleteReview(long reviewId);
 
     Review setLikeReview(long reviewId, long userId, boolean ifPositive);
 

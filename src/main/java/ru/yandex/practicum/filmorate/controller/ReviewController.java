@@ -6,8 +6,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.ReviewService;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +20,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ReviewController {
-    final ReviewService reviewService;
+    private final ReviewService reviewService;
 
     @GetMapping("/{id}")
     public ResponseEntity<Review> getReviewById(@PathVariable long id) {
@@ -27,7 +30,7 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Review>> getReviewsByFilmId(@RequestParam Optional<Long> filmId,
+    public ResponseEntity<List<Review>> getReviewsByFilmId(@RequestParam(required = false) Optional<Long> filmId,
                                                            @RequestParam(defaultValue = "10") long count) {
         return ResponseEntity
                 .status(200)
@@ -45,11 +48,11 @@ public class ReviewController {
     public ResponseEntity<Review> updateReview(@Valid @RequestBody Review review) {
         return ResponseEntity
                 .status(200)
-                .body(reviewService.createReview(review));
+                .body(reviewService.updateReview(review));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Review> deleteReview(@PathVariable long reviewId) {
+    public ResponseEntity<Boolean> deleteReview(@PathVariable long reviewId) {
         return ResponseEntity
                 .status(200)
                 .body(reviewService.deleteReview(reviewId));
@@ -82,5 +85,4 @@ public class ReviewController {
                 .status(200)
                 .body(reviewService.deleteDislikeReview(reviewId, userId));
     }
-
 }

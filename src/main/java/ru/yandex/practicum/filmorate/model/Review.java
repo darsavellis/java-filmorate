@@ -11,15 +11,14 @@ import lombok.experimental.FieldDefaults;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Review {
-    @Positive
-    long id;
+    long reviewId;
     @NotBlank
     String content;
     @NotNull
     Boolean isPositive;
-    @Positive
-    long userId;
-    @Positive
-    long filmId;
+    @NotNull
+    Long userId;
+    @NotNull
+    Long filmId;
     long useful = 0;
 }
