@@ -35,9 +35,9 @@ public class JdbcFilmRepository implements FilmRepository {
     static String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
             "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
     static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
-    static String LIST_OF_IDS_COMMON_FILMS = "SELECT film_id FROM likes " +
-            " WHERE film_id = (SELECT film_id FROM likes WHERE user_id = :userId) AND user_id = :friendId " +
-            " GROUP BY film_id ORDER BY COUNT(film_id) DESC ";
+    static String LIST_OF_COMMON_FILMS = "SELECT * from films WHERE id = (SELECT film_id FROM likes WHERE film_id = " +
+            "(SELECT film_id FROM likes WHERE user_id = :userId) AND user_id = :friendId " +
+            "GROUP BY film_id ORDER BY COUNT(film_id) DESC )";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
@@ -135,14 +135,25 @@ public class JdbcFilmRepository implements FilmRepository {
 
     @Override
     public List<Film> getCommonFilms(long userId, long friendId) {
-        List<Film> commonFilms = new ArrayList<>();
-        List<Long> films = jdbc.queryForList(LIST_OF_IDS_COMMON_FILMS,
-                Map.of("userId", userId, "friendId", friendId), Long.class);
-        for (Long f : films) {
-            Optional<Film> filmOptional = getById(f);
-            Film film = filmOptional.get();
-            commonFilms.add(film);
-        }
-        return commonFilms;
+        Map<Long, Film> filmMap = new HashMap<>();
+        Map<Long, Genre> genreMap = new HashMap<>();
+        jdbc.query(FIND_ALL_GENRES_QUERY, genreRowMapper).forEach(genre -> genreMap.put(genre.getId(), genre));
+        jdbc.query(LIST_OF_COMMON_FILMS, Map.of("userId", userId, "friendId", friendId), filmRowMapper)
+                .forEach(film -> filmMap.put(film.getId(), film));
+        jdbc.query(FIND_GENRES_BY_FILM_ID_QUERY, (resultSet) -> {
+            long id = resultSet.getLong("film_id");
+            if (filmMap.containsKey(id)) {
+                Film film = filmMap.get(id);
+                if (film != null) {
+                    Optional<Genre> optionalGenre = Optional.ofNullable(genreMap.get(resultSet.getLong("genre_id")));
+                    if (optionalGenre.isPresent()) {
+                        Genre genre = optionalGenre.get();
+                        film.getGenres().add(genre);
+                    }
+                }
+            }
+        });
+
+        return new ArrayList<>(filmMap.values());
     }
 }

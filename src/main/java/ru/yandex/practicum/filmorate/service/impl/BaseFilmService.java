@@ -13,10 +13,8 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.MpaRating;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
-import ru.yandex.practicum.filmorate.validation.UserValidator;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -126,9 +124,14 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public List<Film> getCommonFilms(long userId, long friendId) {
-        userRepository.findById(userId);
-        userRepository.findById(friendId);
-        return filmRepository.getCommonFilms(userId, friendId);
+        return filmRepository.getCommonFilms(userId, friendId).stream().peek(film -> {
+            MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId()).orElseThrow(
+                    () -> new ValidationException(String.format(MPA_RATING_ID_NOT_VALID, film.getMpa().getId())));
+
+            Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
+            film.setMpa(mpaRating);
+            film.setLikes(likes);
+        }).collect(Collectors.toList());
     }
 
     private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
