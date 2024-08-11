@@ -7,9 +7,6 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Event {
