@@ -69,6 +69,7 @@ public class BaseFilmService implements FilmService {
         FilmValidator.validate(newFilm);
         filmRepository.getById(newFilm.getId())
             .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, newFilm.getId())));
+
         editFilm(newFilm, () -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, newFilm.getId())));
 
         return filmRepository.update(newFilm);
@@ -111,12 +112,12 @@ public class BaseFilmService implements FilmService {
         return entities;
     }
 
-    private void updateFilmFields(Film newFilm, MpaRating mpaRating, Set<Genre> genres,
+    private void updateFilmFields(Film film, MpaRating mpaRating, Set<Genre> genres,
                                   Set<Director> directors, Set<Long> likes) {
-        newFilm.setMpa(mpaRating);
-        newFilm.setGenres(genres);
-        newFilm.setDirectors(directors);
-        newFilm.setLikes(likes);
+        film.setMpa(mpaRating);
+        film.setGenres(genres);
+        film.setDirectors(directors);
+        film.setLikes(likes);
     }
 
     private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {

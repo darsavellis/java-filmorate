@@ -54,14 +54,15 @@ public class JdbcDirectorRepository implements DirectorRepository {
     @Override
     public Director save(Director director) {
         GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
-
         SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("name", director.getName());
 
         jdbc.update(INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
-        long id = generatedKeyHolder.getKeyAs(Long.class);
+        Long id = generatedKeyHolder.getKeyAs(Long.class);
 
-        director.setId(id);
+        if (Objects.nonNull(id)) {
+            director.setId(id);
+        }
 
         return director;
     }
