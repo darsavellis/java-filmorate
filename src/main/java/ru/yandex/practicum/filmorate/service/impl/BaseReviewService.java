@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
-import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,7 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class BaseReviewService implements ReviewService {
 
-    private final String REVIEW_ID_NOT_FOUND = "Review ID=%s not found";
+    private static final String REVIEW_ID_NOT_FOUND = "Review ID=%s not found";
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
