@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.impl.JdbcUserRepository;
+import ru.yandex.practicum.filmorate.dal.impl.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.FriendshipRowMapper;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
@@ -13,10 +14,10 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
-@Import({JdbcUserRepository.class, UserRowMapper.class,FriendshipRowMapper.class})
+@Import({JdbcUserRepository.class, UserRowMapper.class, FriendshipRowMapper.class, EventRowMapper.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcUserRepositoryTest {
     public static final long TEST_USER_ID = 1L;
@@ -34,8 +35,8 @@ class JdbcUserRepositoryTest {
 
     @Test
     public void testFindUserById() {
+        userRepository.save(getUser());
         Optional<User> userOptional = userRepository.findById(TEST_USER_ID);
-
         assertThat(userOptional)
                 .isPresent()
                 .get()
