@@ -32,6 +32,7 @@ public class BaseFilmService implements FilmService {
     final MpaRatingRepository mpaRatingRepository;
     final GenreRepository genreRepository;
     final LikeRepository likeRepository;
+    final UserRepository userRepository;
 
     public List<Film> getFilms() {
         return filmRepository.getAll().stream().peek(film -> {
@@ -132,5 +133,18 @@ public class BaseFilmService implements FilmService {
                 .sorted(Comparator.comparingLong(Genre::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new)));
         return film;
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+        userRepository.findById(userId);
+        return filmRepository.getRecommendations(userId).stream().peek(film -> {
+            MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId()).orElseThrow(
+                    () -> new ValidationException(String.format(MPA_RATING_ID_NOT_VALID, film.getMpa().getId())));
+
+            Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
+            film.setMpa(mpaRating);
+            film.setLikes(likes);
+        }).collect(Collectors.toList());
     }
 }

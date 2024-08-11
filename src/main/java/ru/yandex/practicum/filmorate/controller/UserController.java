@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.impl.BaseFilmService;
 import ru.yandex.practicum.filmorate.service.impl.BaseUserService;
 
 import java.util.Collection;
@@ -19,6 +20,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserController {
     final BaseUserService userService;
+    final BaseFilmService filmService;
 
     @GetMapping
     public ResponseEntity<Collection<User>> getUsers() {
@@ -42,7 +44,9 @@ public class UserController {
     }
 
     @GetMapping("{id}/recommendations")
-    public List<Film> getRecommendations(@PathVariable("id") long userId) {
-        return userService.getRecommendations(userId);
+    public ResponseEntity<List<Film>> getRecommendations(@PathVariable("id") long userId) {
+        return ResponseEntity
+                .status(200)
+                .body(filmService.getRecommendations(userId));
     }
 }

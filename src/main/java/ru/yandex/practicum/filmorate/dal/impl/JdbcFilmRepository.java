@@ -36,6 +36,11 @@ public class JdbcFilmRepository implements FilmRepository {
             "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
     static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
 
+    static String LIST_OF_RECOMMENDED_FILMS = "SELECT * from films WHERE id = (SELECT film_id FROM likes " +
+            "WHERE film_id NOT IN (SELECT film_id FROM likes WHERE user_id = :userId) AND user_id = " +
+            "(SELECT user_id FROM likes WHERE film_id IN (SELECT film_id FROM likes WHERE user_id = :userId) " +
+            "AND user_id != :userId GROUP BY user_id ORDER BY COUNT(film_id) DESC LIMIT 1))";
+
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
     final GenreRowMapper genreRowMapper;
@@ -128,5 +133,29 @@ public class JdbcFilmRepository implements FilmRepository {
     public boolean delete(long filmId) {
         int rows = jdbc.update(DELETE_QUERY, Map.of("id", filmId));
         return rows > 0;
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+        Map<Long, Film> filmMap = new HashMap<>();
+        Map<Long, Genre> genreMap = new HashMap<>();
+        jdbc.query(FIND_ALL_GENRES_QUERY, genreRowMapper).forEach(genre -> genreMap.put(genre.getId(), genre));
+        jdbc.query(LIST_OF_RECOMMENDED_FILMS, Map.of("userId", userId), filmRowMapper)
+                .forEach(film -> filmMap.put(film.getId(), film));
+        jdbc.query(FIND_GENRES_BY_FILM_ID_QUERY, (resultSet) -> {
+            long id = resultSet.getLong("film_id");
+            if (filmMap.containsKey(id)) {
+                Film film = filmMap.get(id);
+                if (film != null) {
+                    Optional<Genre> optionalGenre = Optional.ofNullable(genreMap.get(resultSet.getLong("genre_id")));
+                    if (optionalGenre.isPresent()) {
+                        Genre genre = optionalGenre.get();
+                        film.getGenres().add(genre);
+                    }
+                }
+            }
+        });
+
+        return new ArrayList<>(filmMap.values());
     }
 }
