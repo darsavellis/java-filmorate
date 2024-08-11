@@ -26,7 +26,7 @@ public class JdbcReviewRepository implements ReviewRepository {
     final ReviewRowMapper reviewRowMapper;
 
 
-    private static final String FIND_REVIEW_QUERY = "SELECT * FROM reviews WHERE id = :id";
+    private static final String FIND_REVIEW_QUERY = "SELECT * FROM reviews WHERE id = :review_id";
     private static final String FIND_ALL_REVIEWS_QUERY = "SELECT * FROM reviews LIMIT :count";
     private static final String FIND_FILM_REVIEWS_QUERY = "SELECT * FROM reviews WHERE film_id = :film_id LIMIT :count";
     private static final String COUNT_REVIEW_SCORE = "SELECT SUM((is_like - 1 + is_like % 2)) FROM review_user " +
@@ -46,7 +46,7 @@ public class JdbcReviewRepository implements ReviewRepository {
 
     private static final String REVIEW_DELETE_QUERY = "DELETE FROM reviews WHERE id = :id";
 
-    private static final String ADD_LIKE_QUERY = "INSERT INTO review_user (review_id, user_id, is_like) " +
+    private static final String ADD_LIKE_QUERY = "MERGE INTO review_user (review_id, user_id, is_like) " +
             "VALUES(:review_id, :user_id, :is_like)";
     private static final String REMOVE_ANY_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
             "user_id = :user_id";
@@ -60,10 +60,10 @@ public class JdbcReviewRepository implements ReviewRepository {
         try {
             Review review = jdbc.queryForObject(
                     FIND_REVIEW_QUERY,
-                    new MapSqlParameterSource("id", reviewId),
+                    new MapSqlParameterSource("review_id", reviewId),
                     reviewRowMapper
             );
-            Long score = jdbc.queryForObject(COUNT_REVIEW_SCORE, new MapSqlParameterSource("reviewId",
+            Long score = jdbc.queryForObject(COUNT_REVIEW_SCORE, new MapSqlParameterSource("review_id",
                     reviewId), Long.class);
 
             if (Objects.nonNull(score)) {
