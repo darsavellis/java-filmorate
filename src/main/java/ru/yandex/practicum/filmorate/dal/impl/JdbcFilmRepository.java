@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.dal.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -34,7 +35,7 @@ public class JdbcFilmRepository implements FilmRepository {
     static String FILM_GENRE_INSERT_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES(:film_id, :genre_id)";
     static String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
             "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
-    static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
+    static String DELETE_QUERY = "DELETE FROM films WHERE id = :id";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
@@ -57,16 +58,20 @@ public class JdbcFilmRepository implements FilmRepository {
 
     @Override
     public Optional<Film> getById(long filmId) {
-        Film film = jdbc.queryForObject(
-                FIND_BY_ID_QUERY,
-                new MapSqlParameterSource("id", filmId),
-                filmRowMapper
-        );
-        Set<Genre> genres = new HashSet<>(jdbc.query(FIND_GENRES_QUERY, Map.of("film_id", filmId), genreRowMapper));
-        if (Objects.nonNull(film)) {
-            film.setGenres(genres);
+        try {
+            Film film = jdbc.queryForObject(
+                    FIND_BY_ID_QUERY,
+                    new MapSqlParameterSource("id", filmId),
+                    filmRowMapper
+            );
+            Set<Genre> genres = new HashSet<>(jdbc.query(FIND_GENRES_QUERY, Map.of("film_id", filmId), genreRowMapper));
+            if (Objects.nonNull(film)) {
+                film.setGenres(genres);
+            }
+            return Optional.ofNullable(film);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
         }
-        return Optional.ofNullable(film);
     }
 
     @Override
