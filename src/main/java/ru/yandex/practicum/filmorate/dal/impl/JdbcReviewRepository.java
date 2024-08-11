@@ -41,7 +41,7 @@ public class JdbcReviewRepository implements ReviewRepository {
             "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id GROUP BY r.id";
 
     private static final String REVIEW_INSERT_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id, timestamp) " +
-            "VALUES(:content, :is_positive, :user_id, :film_id, :timestamp)";
+            "VALUES (:content, :is_positive, :user_id, :film_id, :timestamp)";
 
     private static final String REVIEW_UPDATE_QUERY = "UPDATE reviews SET content = :content, " +
             "is_positive = :is_positive, user_id = :user_id, film_id = :film_id, timestamp = :timestamp WHERE id = :id";
@@ -49,7 +49,7 @@ public class JdbcReviewRepository implements ReviewRepository {
     private static final String REVIEW_DELETE_QUERY = "DELETE FROM reviews WHERE id = :id";
 
     private static final String ADD_LIKE_QUERY = "MERGE INTO review_user (review_id, user_id, is_like) " +
-            "VALUES(:review_id, :user_id, :is_like)";
+            "VALUES (:review_id, :user_id, :is_like)";
     private static final String REMOVE_ANY_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
             "user_id = :user_id";
 

@@ -1,46 +1,29 @@
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('G', 'Фильм демонстрируется без ограничений.');
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('PG', 'Детям рекомендуется смотреть фильм с родителями.');
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('PG-13', 'Просмотр не желателен детям до 13 лет.');
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('R', 'Лица, не достигшие 17-летнего возраста, допускаются на фильм только в сопровождении одного из родителей, либо законного представителя.');
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('NC-17', 'Лица 17-летнего возраста и младше на фильм не допускаются.');
-
-
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Комедия');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Драма');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Мультфильм');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Триллер');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Документальный');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Боевик');
-
-INSERT INTO PUBLIC.FRIEND_STATUSES
-(STATUS)
-VALUES('PENDING');
-INSERT INTO PUBLIC.FRIEND_STATUSES
-(STATUS)
-VALUES('ACCEPTED');
-
-INSERT INTO PUBLIC.USERS
-(EMAIL, LOGIN, NAME, BIRTHDAY)
-VALUES('ivanov@email.com', 'diamond', 'Ivan', '1998-10-20');
+MERGE INTO PUBLIC.FRIEND_STATUSES (ID, STATUS)
+VALUES 
+              (1, 'PENDING'),
+              (2, 'ACCEPTED');
+MERGE INTO PUBLIC.RATINGS (ID, NAME, DESCRIPTION)
+VALUES 
+              (1, 'G', 'для всех возрастов'),
+              (2, 'PG', 'для всех, но маленьким детям рекомендуется просмотр с родителями'),
+              (3, 'PG-13', ' детям до 13 лет просмотр не рекомендуется'),
+              (4, 'R', 'до 17 лет просмотр исключительно с родителями'),
+              (5, 'NC-17', 'просмотр только после 17 лет');
+MERGE INTO PUBLIC.GENRES (ID, NAME)
+VALUES
+              (1, 'Комедия'),
+              (2, 'Драма'),
+              (3, 'Мультфильм'),
+              (4, 'Триллер'),
+              (5, 'Документальный'),
+              (6, 'Боевик');
+MERGE INTO PUBLIC.EVENT_TYPES (ID, NAME)
+VALUES
+              (1, 'LIKE'),
+			  (2, 'REVIEW'),
+			  (3, 'FRIEND');
+MERGE INTO PUBLIC.OPERATION_TYPES (ID, NAME)
+VALUES
+              (1, 'REMOVE'),
+			  (2, 'ADD'),
+			  (3, 'UPDATE');

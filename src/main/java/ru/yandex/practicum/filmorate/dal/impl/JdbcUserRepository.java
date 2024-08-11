@@ -35,7 +35,7 @@ public class JdbcUserRepository implements UserRepository {
             "WHERE t.name = :event_type AND o.name = :operation_type";
     static String UPDATE_USER_QUERY = "UPDATE users SET email = :email, login = :login, name = :name," +
             " birthday = :birthday WHERE id = :id";
-    static String DELETE_USER_BY_ID_QUERY = "DELETE * FROM users WHERE id = :id";
+    static String DELETE_USER_BY_ID_QUERY = "DELETE FROM users WHERE id = :id";
     static String FIND_USER_FRIENDS_QUERY = "SELECT (first_user_id + second_user_id - :user_id) FROM friendships f " +
             "WHERE (first_user_id = :user_id)";
     static String FIND_USER_EVENTS_QUERY = "SELECT ev.*, et.name AS event_type, ot.name AS operation_type FROM " +
