@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dal;
 
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
@@ -23,4 +24,6 @@ public interface ReviewRepository {
     boolean deleteLikeReview(long reviewId, long userId); // удаляет и лайки и дизлайки
 
     boolean deleteDislikeReview(long reviewId, long userId); // умеет удалять только дизлайки
+
+    void eventReview(long userId, long reviewId, OperationType operationType);
 }

@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -46,18 +47,29 @@ public class BaseReviewService implements ReviewService {
     @Override
     public Review createReview(Review review) {
         deepValidateReview(review);
-        return reviewRepository.createReview(review);
+        Review newReview = reviewRepository.createReview(review);
+        reviewRepository.eventReview(newReview.getUserId(), newReview.getReviewId(), OperationType.ADD);
+        return newReview;
     }
 
     @Override
     public Review updateReview(Review review) {
         deepValidateReview(review);
-        return reviewRepository.updateReview(review);
+        Review newReview = reviewRepository.updateReview(review);
+        reviewRepository.eventReview(newReview.getUserId(), newReview.getReviewId(), OperationType.UPDATE);
+        return newReview;
     }
 
     @Override
     public boolean deleteReview(long reviewId) {
-        return reviewRepository.deleteReview(reviewId);
+        Optional<Review> review = reviewRepository.getReviewById(reviewId);
+        if (review.isPresent()) {
+            if (reviewRepository.deleteReview(reviewId)) {
+                reviewRepository.eventReview(review.get().getUserId(), reviewId, OperationType.REMOVE);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

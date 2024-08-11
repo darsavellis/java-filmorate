@@ -132,7 +132,6 @@ public class BaseFilmService implements FilmService {
     private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
         action.accept(filmId, userId);
         Film res = getFilmById(filmId);
-        likeRepository.eventLike(filmId, userId, OperationType.UPDATE);
         return res;
     }
 

@@ -21,7 +21,7 @@ public class Event {
     @Positive
     long entityId;
     @NotNull
-    OperationType operationType;
+    OperationType operation;
     // Это ужасный костыль, но тесты postman ждут число, а не дату
     @Min(1670590017281L)
     long timestamp;
