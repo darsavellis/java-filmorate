@@ -69,9 +69,6 @@ public class JdbcFilmRepository implements FilmRepository {
             "WHERE film_id NOT IN (SELECT film_id FROM likes WHERE user_id = :userId) AND user_id = " +
             "(SELECT user_id FROM likes WHERE film_id IN (SELECT film_id FROM likes WHERE user_id = :userId LIMIT 1) " +
             "AND user_id != :userId LIMIT 1)) GROUP BY films.id ORDER BY COUNT(likes.user_id) DESC";
-    static String LIST_OF_COMMON_FILMS = "SELECT * from films JOIN likes ON films.id = likes.film_id  WHERE films.id = (SELECT film_id FROM likes WHERE film_id = " +
-            "(SELECT film_id FROM likes WHERE user_id = :userId LIMIT 1) AND user_id = :friendId LIMIT 1)" +
-            "GROUP BY films.id, likes.id ORDER BY COUNT(likes.user_id) DESC";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
