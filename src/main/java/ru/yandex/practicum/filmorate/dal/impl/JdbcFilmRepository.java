@@ -35,9 +35,9 @@ public class JdbcFilmRepository implements FilmRepository {
     static String FIND_TOP_WITH_LIMIT_QUERY = "SELECT * FROM films f ORDER BY " +
             "(SELECT count(*) FROM likes l GROUP BY film_id HAVING f.id = l.film_id) DESC LIMIT :count";
     static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
-    static String LIST_OF_COMMON_FILMS = "SELECT * from films WHERE id = (SELECT film_id FROM likes WHERE film_id = " +
-            "(SELECT film_id FROM likes WHERE user_id = :userId ) AND user_id = :friendId " +
-            "GROUP BY film_id ORDER BY COUNT(film_id) DESC)";
+    static String LIST_OF_COMMON_FILMS = "SELECT * from films JOIN likes ON films.id = likes.film_id  WHERE films.id = (SELECT film_id FROM likes WHERE film_id = " +
+            "(SELECT film_id FROM likes WHERE user_id = :userId LIMIT 1) AND user_id = :friendId LIMIT 1)" +
+            "GROUP BY films.id, likes.id ORDER BY COUNT(likes.user_id) DESC";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
