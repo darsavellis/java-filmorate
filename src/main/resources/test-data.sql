@@ -1,42 +1,23 @@
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('G', 'Фильм демонстрируется без ограничений.');
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('PG', 'Детям рекомендуется смотреть фильм с родителями.');
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('PG-13', 'Просмотр не желателен детям до 13 лет.');
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('R', 'Лица, не достигшие 17-летнего возраста, допускаются на фильм только в сопровождении одного из родителей, либо законного представителя.');
-INSERT INTO PUBLIC.RATINGS
-(NAME, DESCRIPTION)
-VALUES('NC-17', 'Лица 17-летнего возраста и младше на фильм не допускаются.');
+MERGE INTO PUBLIC.RATINGS
+(ID, NAME, DESCRIPTION)
+VALUES  (1, 'G', 'Фильм демонстрируется без ограничений.'),
+        (2, 'PG', 'Детям рекомендуется смотреть фильм с родителями.'),
+        (3, 'PG-13', 'Просмотр не желателен детям до 13 лет.'),
+        (4, 'R', 'Лица, не достигшие 17-летнего возраста, допускаются на фильм только в сопровождении одного из
+        родителей, либо законного представителя.'),
+        (5, 'NC-17', 'Лица 17-летнего возраста и младше на фильм не допускаются.');
 
 
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Комедия');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Драма');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Мультфильм');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Триллер');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Документальный');
-INSERT INTO PUBLIC.GENRES
-(NAME)
-VALUES('Боевик');
+MERGE INTO PUBLIC.GENRES
+(ID, NAME)
+VALUES  (1, 'Комедия'),
+        (2, 'Драма'),
+        (3, 'Мультфильм'),
+        (4, 'Триллер'),
+        (5, 'Документальный'),
+        (6, 'Боевик');
 
-INSERT INTO PUBLIC.FRIEND_STATUSES
-(STATUS)
-VALUES('PENDING');
-INSERT INTO PUBLIC.FRIEND_STATUSES
-(STATUS)
-VALUES('ACCEPTED');
+MERGE INTO PUBLIC.FRIEND_STATUSES
+(ID, STATUS)
+VALUES  (1, 'PENDING'),
+        (2, 'ACCEPTED');

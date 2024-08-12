@@ -17,9 +17,11 @@ public interface FilmService {
 
     Film likeFilm(long filmId, long userId);
 
-    Film removeLike(long filmId, long userId);
+    Film deleteLike(long filmId, long userId);
 
     Collection<Film> getMostPopularFilms(Optional<Long> count);
+
+    Collection<Film> getFilmsByDirector(long directorId, String sortBy);
 
     List<Film> getRecommendations(long userId);
 }
