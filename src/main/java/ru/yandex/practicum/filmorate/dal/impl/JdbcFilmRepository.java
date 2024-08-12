@@ -37,7 +37,7 @@ public class JdbcFilmRepository implements FilmRepository {
     static String DELETE_QUERY = "DELETE * FROM films WHERE id = :id";
     static String LIST_OF_COMMON_FILMS = "SELECT * from films WHERE id = (SELECT film_id FROM likes WHERE film_id = " +
             "(SELECT film_id FROM likes WHERE user_id = :userId ) AND user_id = :friendId " +
-            "GROUP BY film_id ORDER BY COUNT(film_id) DESC )";
+            "GROUP BY film_id ORDER BY COUNT(film_id) DESC)";
 
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
