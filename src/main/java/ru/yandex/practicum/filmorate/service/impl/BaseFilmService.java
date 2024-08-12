@@ -151,4 +151,11 @@ public class BaseFilmService implements FilmService {
         userRepository.findById(userId);
         return filmRepository.getRecommendations(userId);
     }
+
+    @Override
+    public void deleteFilmById(long filmId) {
+        Film film = filmRepository.getById(filmId)
+                .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
+        filmRepository.delete(filmId);
+    }
 }

@@ -50,4 +50,13 @@ public class BaseUserService implements UserService {
 
         return userRepository.update(newUser);
     }
+    @Override
+    public void deleteUserById(long userId) throws ValidationException {
+        UserValidator.validate(getUserById(userId));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, userId)));
+
+        userRepository.delete(userId);
+    }
+
 }

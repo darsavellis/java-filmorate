@@ -14,6 +14,8 @@ import ru.yandex.practicum.filmorate.service.impl.BaseUserService;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -49,6 +51,14 @@ public class UserController {
         return ResponseEntity
                 .status(200)
                 .body(userService.updateUser(user));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<String> deleteUser(@PathVariable long userId) {
+        userService.deleteUserById(userId);
+        return ResponseEntity
+                .status(200)
+                .body("Пользователь успешно удален");
     }
 
     @GetMapping("{id}/recommendations")
