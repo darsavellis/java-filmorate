@@ -11,6 +11,8 @@ import ru.yandex.practicum.filmorate.service.impl.BaseFilmService;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -62,7 +64,7 @@ public class FilmController {
             .body(filmService.deleteLike(id, userId));
     }
 
-    @GetMapping("popular")
+    @GetMapping("/popular")
     public List<Film> findTopPopularFilms(@RequestParam(value = "count", required = false) Long limit,
                                           @RequestParam(required = false) Long genreId,
                                           @RequestParam(required = false) Long year) {

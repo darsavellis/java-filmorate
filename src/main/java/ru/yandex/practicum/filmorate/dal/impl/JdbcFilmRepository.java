@@ -39,11 +39,6 @@ public class JdbcFilmRepository implements FilmRepository {
     static final String FIND_FILM_DIRECTOR_QUERY = "SELECT * FROM film_director";
     static final String FIND_LIKES_QUERY = "SELECT * FROM likes";
     static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = :id";
-    static final String FIND_GENRES_BY_FILM_ID_QUERY = """
-        SELECT f.genre_id AS id, g.name FROM film_genre AS f
-        JOIN genres g ON g.id = f.genre_id WHERE film_id = :film_id
-        """;
-
     static final String FILM_INSERT_QUERY = """
         INSERT INTO films (name, description, release_date, duration, rating_id)
         VALUES(:name, :description, :release_date, :duration, :rating_id)
