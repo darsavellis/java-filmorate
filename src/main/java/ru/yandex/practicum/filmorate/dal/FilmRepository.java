@@ -12,6 +12,8 @@ public interface FilmRepository {
 
     Optional<Film> getById(long filmId);
 
+    List<Film> getByDirectorId(long directorId, String sortBy);
+
     Film save(Film film);
 
     Film update(Film newFilm);

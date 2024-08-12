@@ -35,6 +35,4 @@ public class JdbcLikeRepository implements LikeRepository {
     public void removeLike(long filmId, long userId) {
         jdbc.update(REMOVE_LIKE_QUERY, Map.of("film_id", filmId, "user_id", userId));
     }
-
-
 }

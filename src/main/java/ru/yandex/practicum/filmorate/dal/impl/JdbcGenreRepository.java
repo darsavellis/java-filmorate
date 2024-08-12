@@ -20,9 +20,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcGenreRepository implements GenreRepository {
-    static String FIND_ALL_QUERY = "SELECT * FROM genres";
-    static String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = :id";
-    static String FIND_BY_IDS_QUERY = "SELECT * FROM genres WHERE id IN (:genres)";
+    static final String FIND_ALL_QUERY = "SELECT * FROM genres";
+    static final String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = :id";
+    static final String FIND_BY_IDS_QUERY = "SELECT * FROM genres WHERE id IN (:genres)";
 
     final NamedParameterJdbcOperations jdbc;
     final GenreRowMapper genreRowMapper;
@@ -49,5 +49,4 @@ public class JdbcGenreRepository implements GenreRepository {
                 jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("genres", genreIds), genreRowMapper)
         );
     }
-
 }
