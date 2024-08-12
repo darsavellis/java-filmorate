@@ -32,7 +32,6 @@ public class BaseFilmService implements FilmService {
     final MpaRatingRepository mpaRatingRepository;
     final GenreRepository genreRepository;
     final LikeRepository likeRepository;
-    final UserRepository userRepository;
 
     public List<Film> getFilms() {
         return filmRepository.getAll().stream().peek(film -> {
