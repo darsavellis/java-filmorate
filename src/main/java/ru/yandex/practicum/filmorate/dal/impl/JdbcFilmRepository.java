@@ -69,6 +69,11 @@ public class JdbcFilmRepository implements FilmRepository {
             "(SELECT film_id FROM likes WHERE user_id = :userId LIMIT 1) AND user_id = :friendId LIMIT 1)" +
             "GROUP BY films.id, likes.id ORDER BY COUNT(likes.user_id) DESC";
 
+    static String LIST_OF_RECOMMENDED_FILMS = "SELECT * from films JOIN likes ON films.id = likes.film_id  WHERE films.id = (SELECT film_id FROM likes " +
+            "WHERE film_id NOT IN (SELECT film_id FROM likes WHERE user_id = :userId) AND user_id = " +
+            "(SELECT user_id FROM likes WHERE film_id IN (SELECT film_id FROM likes WHERE user_id = :userId LIMIT 1) " +
+            "AND user_id != :userId LIMIT 1)) GROUP BY films.id ORDER BY COUNT(likes.user_id) DESC";
+
     final NamedParameterJdbcOperations jdbc;
     final FilmRowMapper filmRowMapper;
     final GenreRowMapper genreRowMapper;
@@ -255,6 +260,25 @@ public class JdbcFilmRepository implements FilmRepository {
         fillLikes(filmMap);
 
         filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
+        return new ArrayList<>(filmMap.values());
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+        Map<Long, Film> filmMap = new HashMap<>();
+
+        jdbc.query(LIST_OF_RECOMMENDED_FILMS, Map.of("userId", userId), filmRowMapper)
+                .forEach(film -> filmMap.put(film.getId(), film));
+        Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
+        Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
+        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
+
+        fillGenres(filmMap, genreMap);
+        fillDirectors(filmMap, directorMap);
+        fillLikes(filmMap);
+
+        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
+
         return new ArrayList<>(filmMap.values());
     }
 }
