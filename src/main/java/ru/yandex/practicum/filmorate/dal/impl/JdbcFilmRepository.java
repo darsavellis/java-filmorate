@@ -39,6 +39,11 @@ public class JdbcFilmRepository implements FilmRepository {
     static final String FIND_FILM_DIRECTOR_QUERY = "SELECT * FROM film_director";
     static final String FIND_LIKES_QUERY = "SELECT * FROM likes";
     static final String FIND_BY_ID_QUERY = "SELECT * FROM films WHERE id = :id";
+    static final String FIND_GENRES_BY_FILM_ID_QUERY = """
+            SELECT f.genre_id AS id, g.name FROM film_genre AS f
+            JOIN genres g ON g.id = f.genre_id WHERE film_id = :film_id
+            """;
+
     static final String FILM_INSERT_QUERY = """
         INSERT INTO films (name, description, release_date, duration, rating_id)
         VALUES(:name, :description, :release_date, :duration, :rating_id)
@@ -99,17 +104,14 @@ public class JdbcFilmRepository implements FilmRepository {
     @Override
     public Optional<Film> getById(long filmId) {
         try {
-            Film film = jdbc.queryForObject(
-                FIND_BY_ID_QUERY,
-                new MapSqlParameterSource("id", filmId),
-                filmRowMapper
-            );
-            Set<Genre> genres = new HashSet<>(jdbc.query(FIND_GENRES_QUERY, Map.of("film_id", filmId), genreRowMapper));
+            Film film = jdbc.queryForObject(FIND_BY_ID_QUERY, Map.of("id", filmId), filmRowMapper);
+            Set<Genre> genres = new HashSet<>(
+                jdbc.query(FIND_GENRES_BY_FILM_ID_QUERY, Map.of("film_id", filmId), genreRowMapper));
             if (Objects.nonNull(film)) {
                 film.setGenres(genres);
             }
             return Optional.ofNullable(film);
-        } catch (EmptyResultDataAccessException ignored) {
+        } catch (Exception ignored) {
             return Optional.empty();
         }
     }
@@ -202,7 +204,6 @@ public class JdbcFilmRepository implements FilmRepository {
             if (Objects.nonNull(film)) {
                 film.getDirectors().add(directorMap.get(resultSet.getLong("director_id")));
             }
-
         });
     }
 

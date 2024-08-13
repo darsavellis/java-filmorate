@@ -45,7 +45,7 @@ public class DirectorController {
     @ResponseBody
     public ResponseEntity<Director> updateDirector(@RequestBody Director director) {
         return ResponseEntity
-            .status(201)
+            .status(200)
             .body(directorService.updateDirector(director));
     }
 
