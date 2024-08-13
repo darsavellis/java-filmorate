@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
@@ -119,6 +121,13 @@ public class BaseFilmService implements FilmService {
         film.setGenres(genres);
         film.setDirectors(directors);
         film.setLikes(likes);
+    }
+
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        userRepository.findById(userId);
+        userRepository.findById(friendId);
+        return filmRepository.getCommonFilms(userId, friendId);
     }
 
     private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {

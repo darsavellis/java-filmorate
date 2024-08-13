@@ -20,5 +20,7 @@ public interface FilmRepository {
 
     boolean delete(long filmId);
 
+    List<Film> getCommonFilms(long userId, long friendId);
+
     List<Film> getRecommendations(long userId);
 }

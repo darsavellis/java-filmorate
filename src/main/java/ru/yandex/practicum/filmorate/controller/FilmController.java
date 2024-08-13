@@ -79,4 +79,11 @@ public class FilmController {
             .status(200)
             .body(filmService.getFilmsByDirector(directorId, sortBy));
     }
+
+    @GetMapping("/common")
+    public ResponseEntity<List<Film>> commonFilms(@RequestParam long userId, long friendId) {
+        return ResponseEntity
+                .status(200)
+                .body(filmService.getCommonFilms(userId, friendId));
+    }
 }

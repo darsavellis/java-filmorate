@@ -64,6 +64,10 @@ public class JdbcFilmRepository implements FilmRepository {
         AS lt ON lt.id = f.ID WHERE fd.director_id = :director_id
         """;
     static final String FIND_DIRECTOR_BY_ID = "SELECT * FROM directors WHERE id = :id";
+    static final String LIST_OF_COMMON_FILMS = "SELECT * from films JOIN likes ON films.id = likes.film_id " +
+            " WHERE films.id = (SELECT film_id FROM likes WHERE film_id = " +
+            "(SELECT film_id FROM likes WHERE user_id = :userId LIMIT 1) AND user_id = :friendId LIMIT 1)" +
+            "GROUP BY films.id, likes.id ORDER BY COUNT(likes.user_id) DESC";
 
     static String LIST_OF_RECOMMENDED_FILMS = "SELECT * from films JOIN likes ON films.id = likes.film_id  WHERE films.id = (SELECT film_id FROM likes " +
             "WHERE film_id NOT IN (SELECT film_id FROM likes WHERE user_id = :userId) AND user_id = " +
@@ -239,6 +243,24 @@ public class JdbcFilmRepository implements FilmRepository {
 
         jdbc.update(FILM_GENRE_DELETE_QUERY, deleteFilmGenreParam);
         jdbc.update(FILM_DIRECTOR_DELETE_QUERY, deleteFilmDirectorParam);
+    }
+
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        Map<Long, Film> filmMap = new HashMap<>();
+
+        jdbc.query(LIST_OF_COMMON_FILMS, Map.of("userId", userId, "friendId", friendId), filmRowMapper)
+                .forEach(film -> filmMap.put(film.getId(), film));
+        Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
+        Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
+        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
+
+        fillGenres(filmMap, genreMap);
+        fillDirectors(filmMap, directorMap);
+        fillLikes(filmMap);
+
+        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
+        return new ArrayList<>(filmMap.values());
     }
 
     @Override
