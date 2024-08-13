@@ -12,9 +12,13 @@ public interface FilmRepository {
 
     Optional<Film> getById(long filmId);
 
+    List<Film> getByDirectorId(long directorId, String sortBy);
+
     Film save(Film film);
 
     Film update(Film newFilm);
 
     boolean delete(long filmId);
+
+    List<Film> getRecommendations(long userId);
 }
