@@ -175,7 +175,7 @@ public class JdbcUserRepository implements UserRepository {
             .addValue("id", user.getId());
     }
 
-    private Optional<Friendship> getFriendship(long senderId, long receiverId) {
+    Optional<Friendship> getFriendship(long senderId, long receiverId) {
         try {
             return Optional.ofNullable(jdbc.queryForObject(CHECK_FRIENDSHIP_STATUS_QUERY,
                 Map.of("first_user_id", senderId, "second_user_id", receiverId), friendshipRowMapper));

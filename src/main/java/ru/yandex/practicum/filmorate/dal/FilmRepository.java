@@ -25,4 +25,6 @@ public interface FilmRepository {
     List<Film> getRecommendations(long userId);
 
     List<Film> getTopPopularFilms(Long limit, Long genreId, Long year);
+
+    List<Film> searchFilms(String query, String by);
 }
