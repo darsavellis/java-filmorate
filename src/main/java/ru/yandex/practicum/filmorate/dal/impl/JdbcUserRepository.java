@@ -25,29 +25,40 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcUserRepository implements UserRepository {
-    final FriendshipRowMapper friendshipRowMapper;
     static String FIND_ALL_USERS_QUERY = "SELECT * FROM users";
+
     static String FIND_USER_BY_ID_QUERY = "SELECT * FROM users WHERE id = :id";
+
     static String INSERT_USER_QUERY = "INSERT INTO users (email, login, name, birthday) " +
             "VALUES(:email, :login, :name, :birthday)";
+
     static String INSERT_EVENT_QUERY = "INSERT INTO events (user_id, entity_id, timestamp, type_id, operation_id) " +
             "SELECT :user_id, :entity_id, :timestamp, t.id , o.id FROM event_types t, operation_types o " +
             "WHERE t.name = :event_type AND o.name = :operation_type";
-    static String UPDATE_USER_QUERY = "UPDATE users SET email = :email, login = :login, name = :name," +
-            " birthday = :birthday WHERE id = :id";
+
     static String DELETE_USER_BY_ID_QUERY = "DELETE FROM users WHERE id = :id";
+
     static String FIND_USER_FRIENDS_QUERY = "SELECT (first_user_id + second_user_id - :user_id) FROM friendships f " +
             "WHERE (first_user_id = :user_id)";
+
     static String FIND_USER_EVENTS_QUERY = "SELECT ev.*, et.name AS event_type, ot.name AS operation_type FROM " +
             "events ev JOIN event_types et ON et.id = ev.type_id JOIN operation_types ot ON ot.id = ev.operation_id " +
             "WHERE ev.user_id = :user_id";
+
+    static String UPDATE_USER_QUERY = "UPDATE users SET email = :email, login = :login, name = :name," +
+            " birthday = :birthday WHERE id = :id";
+
     static String MODIFY_FRIEND_REQUEST_QUERY = "MERGE INTO friendships (first_user_id, second_user_id, status_id) " +
             "KEY (first_user_id, second_user_id) VALUES (:first_user_id, :second_user_id, :status_id)";
+
     static String DELETE_FRIEND_REQUEST_QUERY = "DELETE FROM friendships WHERE id = :id";
+
     static String CHECK_FRIENDSHIP_STATUS_QUERY = "SELECT * FROM friendships f " +
             "WHERE first_user_id = :first_user_id AND second_user_id = :second_user_id OR " +
             "first_user_id  = :second_user_id AND second_user_id = first_user_id";
+
     final NamedParameterJdbcOperations jdbc;
+    final FriendshipRowMapper friendshipRowMapper;
     final UserRowMapper userRowMapper;
     final EventRowMapper eventRowMapper;
 
@@ -72,12 +83,7 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public User save(User user) {
         GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
-        SqlParameterSource userParameters = new MapSqlParameterSource()
-                .addValue("email", user.getEmail())
-                .addValue("login", user.getLogin())
-                .addValue("name", user.getName())
-                .addValue("birthday", user.getBirthday());
-
+        SqlParameterSource userParameters = getSqlUserParameters(user);
         jdbc.update(INSERT_USER_QUERY, userParameters, generatedKeyHolder, new String[]{"id"});
         long id = generatedKeyHolder.getKeyAs(Long.class);
         user.setId(id);
@@ -86,12 +92,7 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     public User update(User newUser) {
-        SqlParameterSource newUserParameters = new MapSqlParameterSource()
-                .addValue("email", newUser.getEmail())
-                .addValue("login", newUser.getLogin())
-                .addValue("name", newUser.getName())
-                .addValue("birthday", newUser.getBirthday())
-                .addValue("id", newUser.getId());
+        SqlParameterSource newUserParameters = getSqlUserParameters(newUser);
         jdbc.update(UPDATE_USER_QUERY, newUserParameters);
         return newUser;
     }
@@ -171,6 +172,15 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public List<Event> getUserEvents(long userId) {
         return jdbc.query(FIND_USER_EVENTS_QUERY, Map.of("user_id", userId), eventRowMapper);
+    }
+
+    private static SqlParameterSource getSqlUserParameters(User user) {
+        return new MapSqlParameterSource()
+                .addValue("email", user.getEmail())
+                .addValue("login", user.getLogin())
+                .addValue("name", user.getName())
+                .addValue("birthday", user.getBirthday())
+                .addValue("id", user.getId());
     }
 
     private Optional<Friendship> getFriendship(long senderId, long receiverId) {

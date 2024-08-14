@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -19,16 +18,16 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Film {
     long id;
-    @NotBlank
+    @NotBlank(message = "Название фильма не может быть пустой строкой/состоять из пробелов")
     String name;
-    @Size(max = 200)
+    @Size(max = 200, message = "Количество символов в названии не должно превышать 200")
     String description;
-    @PastOrPresent
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     LocalDate releaseDate;
-    @Positive
+    @Positive(message = "Длительность фильма должно быть положительным числом")
     long duration;
     MpaRating mpa = new MpaRating();
     Set<Genre> genres = new HashSet<>();
     Set<Long> likes = new HashSet<>();
+    Set<Director> directors = new HashSet<>();
 }

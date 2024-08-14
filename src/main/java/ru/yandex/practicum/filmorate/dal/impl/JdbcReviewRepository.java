@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.dal.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -47,6 +47,7 @@ public class JdbcReviewRepository implements ReviewRepository {
 
     static final String ADD_LIKE_QUERY = "MERGE INTO review_user (review_id, user_id, is_like) " +
             "VALUES (:review_id, :user_id, :is_like)";
+
     static final String REMOVE_ANY_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
             "user_id = :user_id";
 
@@ -61,19 +62,18 @@ public class JdbcReviewRepository implements ReviewRepository {
     public Optional<Review> getReviewById(long reviewId) {
 
         try {
-            Review review = jdbc.queryForObject(
+            Optional<Review> review = Optional.ofNullable(jdbc.queryForObject(
                     FIND_REVIEW_QUERY,
-                    new MapSqlParameterSource("review_id", reviewId),
+                    Map.of("review_id", reviewId),
                     reviewRowMapper
-            );
-            Long score = jdbc.queryForObject(COUNT_REVIEW_SCORE, new MapSqlParameterSource("review_id",
-                    reviewId), Long.class);
+            ));
+            Long score = jdbc.queryForObject(COUNT_REVIEW_SCORE, Map.of("review_id", reviewId), Long.class);
 
-            if (Objects.nonNull(score)) {
-                review.setUseful(score);
+            if (Objects.nonNull(score) && review.isPresent()) {
+                review.get().setUseful(score);
             }
-            return Optional.ofNullable(review);
-        } catch (EmptyResultDataAccessException e) {
+            return review;
+        } catch (DataAccessException ignored) {
             return Optional.empty();
         }
     }
@@ -127,10 +127,13 @@ public class JdbcReviewRepository implements ReviewRepository {
 
         jdbc.update(REVIEW_INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
 
-        long id = generatedKeyHolder.getKeyAs(Long.class);
-        review.setReviewId(id);
-        review.setUseful(0);
-        return review;
+        Long id = generatedKeyHolder.getKeyAs(Long.class);
+        if (Objects.nonNull(id)) {
+            review.setReviewId(id);
+            return review;
+        } else {
+            return null;
+        }
     }
 
     @Override

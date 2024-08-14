@@ -22,7 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @JdbcTest
 @AutoConfigureTestDatabase
 @Import({JdbcReviewRepository.class, JdbcUserRepository.class, JdbcFilmRepository.class, UserRowMapper.class,
-        FriendshipRowMapper.class, GenreRowMapper.class, FilmRowMapper.class, ReviewRowMapper.class, EventRowMapper.class})
+        FriendshipRowMapper.class, GenreRowMapper.class, FilmRowMapper.class, ReviewRowMapper.class, EventRowMapper.class,
+        DirectorRowMapper.class, MpaRatingRowMapper.class})
+
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcReviewRepositoryTest {
 

@@ -15,59 +15,75 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @RequestMapping("/films")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class FilmController {
+    static final String LIKE_PATH = "/{id}/like";
     final BaseFilmService filmService;
-    final String likePath = "/{id}/like";
 
     @GetMapping
     public ResponseEntity<Collection<Film>> getFilms() {
         return ResponseEntity
-                .status(200)
-                .body(filmService.getFilms());
+            .status(200)
+            .body(filmService.getFilms());
     }
 
     @GetMapping("/{film-id}")
     public ResponseEntity<Film> getFilmById(@PathVariable("film-id") long filmId) {
         return ResponseEntity
-                .status(200)
-                .body(filmService.getFilmById(filmId));
+            .status(200)
+            .body(filmService.getFilmById(filmId));
     }
 
     @PostMapping
     public ResponseEntity<Film> createFilm(@Valid @RequestBody Film film) {
         return ResponseEntity
-                .status(201)
-                .body(filmService.createFilm(film));
+            .status(201)
+            .body(filmService.createFilm(film));
     }
 
     @PutMapping
     public ResponseEntity<Film> updateFilm(@Valid @RequestBody Film film) {
         return ResponseEntity
-                .status(200)
-                .body(filmService.updateFilm(film));
+            .status(200)
+            .body(filmService.updateFilm(film));
     }
 
-    @PutMapping(likePath + "/{user-id}")
+    @PutMapping(LIKE_PATH + "/{user-id}")
     public ResponseEntity<Film> likeFilm(@PathVariable long id, @PathVariable("user-id") long userId) {
         return ResponseEntity
-                .status(200)
-                .body(filmService.likeFilm(id, userId));
+            .status(200)
+            .body(filmService.likeFilm(id, userId));
     }
 
-    @DeleteMapping(likePath + "/{user-id}")
+    @DeleteMapping(LIKE_PATH + "/{user-id}")
     public ResponseEntity<Film> removeLike(@PathVariable long id, @PathVariable("user-id") long userId) {
         return ResponseEntity
-                .status(200)
-                .body(filmService.removeLike(id, userId));
+            .status(200)
+            .body(filmService.deleteLike(id, userId));
     }
 
     @GetMapping("/popular")
     @ResponseBody
     public ResponseEntity<List<Film>> getMostPopularFilms(@RequestParam Optional<Long> count) {
         return ResponseEntity
+            .status(200)
+            .body(filmService.getMostPopularFilms(count));
+    }
+
+    @GetMapping("/director/{director-id}")
+    @ResponseBody
+    public ResponseEntity<Collection<Film>> getFilmsByDirector(@PathVariable("director-id") long directorId,
+                                                               @RequestParam String sortBy) {
+        return ResponseEntity
+            .status(200)
+            .body(filmService.getFilmsByDirector(directorId, sortBy));
+    }
+
+    @GetMapping("/common")
+    public ResponseEntity<List<Film>> commonFilms(@RequestParam long userId, long friendId) {
+        return ResponseEntity
                 .status(200)
-                .body(filmService.getMostPopularFilms(count));
+                .body(filmService.getCommonFilms(userId, friendId));
     }
 }

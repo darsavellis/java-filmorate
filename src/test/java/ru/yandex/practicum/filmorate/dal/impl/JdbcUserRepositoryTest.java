@@ -18,7 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @JdbcTest
 @AutoConfigureTestDatabase
 @Import({JdbcUserRepository.class, JdbcFilmRepository.class, JdbcLikeRepository.class, FilmRowMapper.class,
-        UserRowMapper.class, GenreRowMapper.class, FriendshipRowMapper.class, EventRowMapper.class})
+        UserRowMapper.class, GenreRowMapper.class, FriendshipRowMapper.class, EventRowMapper.class,
+        DirectorRowMapper.class, MpaRatingRowMapper.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcUserRepositoryTest {
     private final JdbcUserRepository userRepository;

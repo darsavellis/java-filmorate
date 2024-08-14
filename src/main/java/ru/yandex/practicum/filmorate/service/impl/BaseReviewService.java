@@ -19,7 +19,6 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class BaseReviewService implements ReviewService {
-
     static final String REVIEW_ID_NOT_FOUND = "Review ID=%s not found";
 
     final ReviewRepository reviewRepository;
@@ -87,7 +86,7 @@ public class BaseReviewService implements ReviewService {
         return reviewRepository.getReviewById(reviewId).get();
     }
 
-    private void deepValidateReview(Review review) {
+    void deepValidateReview(Review review) {
         if (userRepository.findById(review.getUserId()).isEmpty()) {
             throw new NotFoundException("The user specified in the review was not found");
         }
