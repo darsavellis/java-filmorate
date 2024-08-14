@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,7 +36,7 @@ public class DirectorController {
 
     @PostMapping
     @ResponseBody
-    public ResponseEntity<Director> createDirector(@RequestBody Director director) {
+    public ResponseEntity<Director> createDirector(@Valid @RequestBody Director director) {
         return ResponseEntity
             .status(201)
             .body(directorService.createDirector(director));
@@ -43,7 +44,7 @@ public class DirectorController {
 
     @PutMapping
     @ResponseBody
-    public ResponseEntity<Director> updateDirector(@RequestBody Director director) {
+    public ResponseEntity<Director> updateDirector(@Valid @RequestBody Director director) {
         return ResponseEntity
             .status(200)
             .body(directorService.updateDirector(director));

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.impl.JdbcUserRepository;
+import ru.yandex.practicum.filmorate.dal.impl.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.FriendshipRowMapper;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
@@ -19,7 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 
 @JdbcTest
-@Import({JdbcUserRepository.class, UserRowMapper.class, FriendshipRowMapper.class})
+@Import({JdbcUserRepository.class, UserRowMapper.class, FriendshipRowMapper.class, EventRowMapper.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcUserRepositoryTest {
     private final JdbcUserRepository userRepository;
@@ -39,9 +40,7 @@ class JdbcUserRepositoryTest {
 
         assertThat(userOptional)
             .isPresent()
-            .hasValueSatisfying(user -> {
-                assertThat(user).usingRecursiveComparison().isEqualTo(newUser);
-            });
+            .hasValueSatisfying(user -> assertThat(user).usingRecursiveComparison().isEqualTo(newUser));
     }
 
     @Test
@@ -104,12 +103,10 @@ class JdbcUserRepositoryTest {
 
             repositoryUser = userRepository.findById(updatedUser.getId());
 
-            repositoryUser.ifPresent(user -> {
-                assertThat(user)
-                    .usingRecursiveComparison()
-                    .ignoringExpectedNullFields()
-                    .isEqualTo(localUser);
-            });
+            repositoryUser.ifPresent(user -> assertThat(user)
+                .usingRecursiveComparison()
+                .ignoringExpectedNullFields()
+                .isEqualTo(localUser));
         }
     }
 }

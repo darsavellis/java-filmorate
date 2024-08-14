@@ -25,6 +25,8 @@ public class BaseFilmService implements FilmService {
     static final String FILM_ID_NOT_FOUND = "Film ID=%s not found";
     static final String GENRES_NOT_VALID = "Genres %s not valid";
     static final String DIRECTORS_NOT_VALID = "Directors %s not valid";
+    static final String USER_ID_NOT_FOUND = "User ID=%s not found";
+    static final String DIRECTOR_ID_NOT_FOUND = "Director ID=%s not found";
 
     final FilmRepository filmRepository;
     final MpaRatingRepository mpaRatingRepository;
@@ -46,10 +48,14 @@ public class BaseFilmService implements FilmService {
         MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId())
             .orElseThrow(() -> new ValidationException(String.format(MPA_RATING_ID_NOT_VALID, filmId)));
 
-        Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
+        Set<Long> likes = likeRepository.getLikesByFilmId(filmId);
+        Set<Genre> genres = genreRepository.getGenresByFilmId(filmId);
+        Set<Director> directors = directorRepository.getDirectorsByFilmId(filmId);
 
         film.setMpa(mpaRating);
         film.setLikes(likes);
+        film.setGenres(genres);
+        film.setDirectors(directors);
 
         return film;
     }
@@ -91,36 +97,6 @@ public class BaseFilmService implements FilmService {
         return filmRepository.getTop(count.orElse(10L));
     }
 
-    private void editFilm(Film film, Supplier<? extends RuntimeException> exceptionSupplier) {
-        MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId()).orElseThrow(exceptionSupplier);
-
-        Set<Genre> genres = getValidatedEntities(film.getGenres(), Genre::getId,
-            genreRepository::getByIds, GENRES_NOT_VALID);
-        Set<Director> directors = getValidatedEntities(film.getDirectors(), Director::getId,
-            directorRepository::getByIds, DIRECTORS_NOT_VALID);
-        Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
-
-        updateFilmFields(film, mpaRating, genres, directors, likes);
-    }
-
-    private <T> Set<T> getValidatedEntities(Set<T> entitySet, Function<T, Long> idExtractor,
-                                            Function<List<Long>, Set<T>> convertIds, String errorMessage) {
-        List<Long> entityIds = entitySet.stream().map(idExtractor).toList();
-        Set<T> entities = convertIds.apply(entityIds);
-        if (entityIds.size() != entities.size()) {
-            throw new ValidationException(String.format(errorMessage, entities));
-        }
-        return entities;
-    }
-
-    private void updateFilmFields(Film film, MpaRating mpaRating, Set<Genre> genres,
-                                  Set<Director> directors, Set<Long> likes) {
-        film.setMpa(mpaRating);
-        film.setGenres(genres);
-        film.setDirectors(directors);
-        film.setLikes(likes);
-    }
-
     @Override
     public List<Film> getCommonFilms(long userId, long friendId) {
         userRepository.findById(userId);
@@ -128,21 +104,10 @@ public class BaseFilmService implements FilmService {
         return filmRepository.getCommonFilms(userId, friendId);
     }
 
-    private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
-        action.accept(filmId, userId);
-        return getFilmById(filmId);
-    }
-
-    private Film mapToSortedFields(Film film) {
-        film.setGenres(film.getGenres()
-            .stream()
-            .sorted(Comparator.comparingLong(Genre::getId))
-            .collect(Collectors.toCollection(LinkedHashSet::new)));
-        return film;
-    }
-
     @Override
     public Collection<Film> getFilmsByDirector(long directorId, String sortBy) {
+        directorRepository.getById(directorId)
+            .orElseThrow(() -> new NotFoundException(String.format(DIRECTOR_ID_NOT_FOUND, directorId)));
         return filmRepository.getByDirectorId(directorId, sortBy);
     }
 
@@ -188,5 +153,52 @@ public class BaseFilmService implements FilmService {
             top = top.stream().limit(limit).toList();
         }
         return top;
+    }
+
+    void editFilm(Film film, Supplier<? extends RuntimeException> exceptionSupplier) {
+        MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId()).orElseThrow(exceptionSupplier);
+
+        Set<Genre> genres = getValidatedEntities(film.getGenres(), Genre::getId,
+            genreRepository::getByIds, GENRES_NOT_VALID);
+        Set<Director> directors = getValidatedEntities(film.getDirectors(), Director::getId,
+            directorRepository::getByIds, DIRECTORS_NOT_VALID);
+        Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
+
+        updateFilmFields(film, mpaRating, genres, directors, likes);
+    }
+
+    <T> Set<T> getValidatedEntities(Set<T> entitySet, Function<T, Long> idExtractor,
+                                    Function<List<Long>, Set<T>> convertIds, String errorMessage) {
+        List<Long> entityIds = entitySet.stream().map(idExtractor).toList();
+        Set<T> entities = convertIds.apply(entityIds);
+        if (entityIds.size() != entities.size()) {
+            throw new ValidationException(String.format(errorMessage, entities));
+        }
+        return entities;
+    }
+
+    void updateFilmFields(Film film, MpaRating mpaRating, Set<Genre> genres,
+                          Set<Director> directors, Set<Long> likes) {
+        film.setMpa(mpaRating);
+        film.setGenres(genres);
+        film.setDirectors(directors);
+        film.setLikes(likes);
+    }
+
+    Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
+        Film film = filmRepository.getById(filmId)
+            .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
+        userRepository.findById(userId)
+            .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, userId)));
+        action.accept(filmId, userId);
+        return film;
+    }
+
+    Film mapToSortedFields(Film film) {
+        film.setGenres(film.getGenres()
+            .stream()
+            .sorted(Comparator.comparingLong(Genre::getId))
+            .collect(Collectors.toCollection(LinkedHashSet::new)));
+        return film;
     }
 }

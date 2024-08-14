@@ -24,6 +24,11 @@ public class JdbcDirectorRepository implements DirectorRepository {
     static final String UPDATE_QUERY = "UPDATE directors SET name = :name";
     static final String DELETE_QUERY = "DELETE FROM directors WHERE id = :id";
     static final String FIND_BY_IDS_QUERY = "SELECT * FROM directors WHERE id IN (:directors)";
+    static final String FIND_DIRECTORS_BY_FILM_ID = """
+        SELECT d.* FROM film_director f
+        JOIN directors d ON d.id = f.director_id
+        WHERE f.film_id = :film_id
+        """;
 
     final NamedParameterJdbcOperations jdbc;
     final DirectorRowMapper directorRowMapper;
@@ -81,5 +86,10 @@ public class JdbcDirectorRepository implements DirectorRepository {
     public boolean delete(long directorId) {
         int rows = jdbc.update(DELETE_QUERY, Map.of("id", directorId));
         return rows > 0;
+    }
+
+    @Override
+    public Set<Director> getDirectorsByFilmId(long filmId) {
+        return new HashSet<>(jdbc.query(FIND_DIRECTORS_BY_FILM_ID, Map.of("film_id", filmId), directorRowMapper));
     }
 }

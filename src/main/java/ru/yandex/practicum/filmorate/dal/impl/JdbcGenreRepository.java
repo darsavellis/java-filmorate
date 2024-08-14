@@ -11,10 +11,7 @@ import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,6 +20,10 @@ public class JdbcGenreRepository implements GenreRepository {
     static final String FIND_ALL_QUERY = "SELECT * FROM genres";
     static final String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = :id";
     static final String FIND_BY_IDS_QUERY = "SELECT * FROM genres WHERE id IN (:genres)";
+    static final String FIND_GENRES_BY_FILM_ID_QUERY = """
+        SELECT g.* FROM film_genre AS f
+        JOIN genres g ON g.id = f.genre_id WHERE f.film_id = :film_id
+        """;
 
     final NamedParameterJdbcOperations jdbc;
     final GenreRowMapper genreRowMapper;
@@ -42,6 +43,12 @@ public class JdbcGenreRepository implements GenreRepository {
             return Optional.empty();
         }
     }
+
+    @Override
+    public Set<Genre> getGenresByFilmId(long filmId) {
+        return new HashSet<>(jdbc.query(FIND_GENRES_BY_FILM_ID_QUERY, Map.of("film_id", filmId), genreRowMapper));
+    }
+
 
     @Override
     public Set<Genre> getByIds(List<Long> genreIds) {

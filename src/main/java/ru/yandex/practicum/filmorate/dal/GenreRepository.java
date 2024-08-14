@@ -11,5 +11,7 @@ public interface GenreRepository {
 
     Optional<Genre> getGenreById(long genreId);
 
+    Set<Genre> getGenresByFilmId(long filmId);
+
     Set<Genre> getByIds(List<Long> genreIds);
 }
