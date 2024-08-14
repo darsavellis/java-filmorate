@@ -36,7 +36,7 @@ public class JdbcGenreRepository implements GenreRepository {
     public Optional<Genre> getGenreById(long genreId) {
         try {
             return Optional.ofNullable(
-                    jdbc.queryForObject(FIND_BY_ID_QUERY, new MapSqlParameterSource("id", genreId), genreRowMapper)
+                jdbc.queryForObject(FIND_BY_ID_QUERY, new MapSqlParameterSource("id", genreId), genreRowMapper)
             );
         } catch (EmptyResultDataAccessException ignored) {
             return Optional.empty();
@@ -46,7 +46,7 @@ public class JdbcGenreRepository implements GenreRepository {
     @Override
     public Set<Genre> getByIds(List<Long> genreIds) {
         return new HashSet<>(
-                jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("genres", genreIds), genreRowMapper)
+            jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("genres", genreIds), genreRowMapper)
         );
     }
 }

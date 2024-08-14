@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.service.impl.BaseFilmService;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -63,12 +62,11 @@ public class FilmController {
             .body(filmService.deleteLike(id, userId));
     }
 
-    @GetMapping("/popular")
-    @ResponseBody
-    public ResponseEntity<List<Film>> getMostPopularFilms(@RequestParam Optional<Long> count) {
-        return ResponseEntity
-            .status(200)
-            .body(filmService.getMostPopularFilms(count));
+    @GetMapping("popular")
+    public List<Film> findTopPopularFilms(@RequestParam(value = "count", required = false) Long limit,
+                                          @RequestParam(required = false) Long genreId,
+                                          @RequestParam(required = false) Long year) {
+        return filmService.getTopPopularFilms(limit, genreId, year);
     }
 
     @GetMapping("/director/{director-id}")

@@ -159,4 +159,35 @@ public class BaseFilmService implements FilmService {
         filmRepository.delete(filmId);
         return film;
     }
+
+    @Override
+    public List<Film> getTopPopularFilms(Long limit, Long genreId, Long year) {
+        List<Film> top = filmRepository.getAll().stream()
+            .sorted((o1, o2) -> o2.getLikes().size() - o1.getLikes().size())
+            .collect(Collectors.toList());
+
+        if (genreId != null || year != null) {
+            return top.stream()
+                .filter(film -> {
+                    if (genreId != null) {
+                        return film.getGenres().stream().anyMatch(genre -> genre.getId() == genreId);
+                    } else {
+                        return true;
+                    }
+                })
+                .filter(film -> {
+                    if (year != null) {
+                        return film.getReleaseDate().getYear() == year;
+                    } else {
+                        return true;
+                    }
+                })
+                .collect(Collectors.toList());
+        }
+        if (limit != null) {
+            top = top.stream().limit(limit).toList();
+        }
+        return top;
+    }
+
 }

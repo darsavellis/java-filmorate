@@ -28,7 +28,7 @@ public class BaseReviewService implements ReviewService {
     @Override
     public Review getReviewById(long reviewId) {
         return reviewRepository.getReviewById(reviewId)
-                .orElseThrow(() -> new NotFoundException(String.format(REVIEW_ID_NOT_FOUND, reviewId)));
+            .orElseThrow(() -> new NotFoundException(String.format(REVIEW_ID_NOT_FOUND, reviewId)));
     }
 
     @Override

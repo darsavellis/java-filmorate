@@ -26,8 +26,8 @@ public class UserController {
     @GetMapping
     public ResponseEntity<Collection<User>> getUsers() {
         return ResponseEntity
-                .status(200)
-                .body(userService.getUsers());
+            .status(200)
+            .body(userService.getUsers());
     }
 
     @GetMapping("/{userId}")
@@ -40,22 +40,22 @@ public class UserController {
     @GetMapping("/{id}/feed")
     public ResponseEntity<Collection<Event>> getEventsList(@PathVariable Long id) {
         return ResponseEntity
-                .status(200)
-                .body(userService.getEventsOfUser(id));
+            .status(200)
+            .body(userService.getEventsOfUser(id));
     }
 
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         return ResponseEntity
-                .status(201)
-                .body(userService.createUser(user));
+            .status(201)
+            .body(userService.createUser(user));
     }
 
     @PutMapping
     public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
         return ResponseEntity
-                .status(200)
-                .body(userService.updateUser(user));
+            .status(200)
+            .body(userService.updateUser(user));
     }
 
     @DeleteMapping("/{userId}")
@@ -68,7 +68,7 @@ public class UserController {
     @GetMapping("{id}/recommendations")
     public ResponseEntity<List<Film>> getRecommendations(@PathVariable("id") long userId) {
         return ResponseEntity
-                .status(200)
-                .body(filmService.getRecommendations(userId));
+            .status(200)
+            .body(filmService.getRecommendations(userId));
     }
 }
