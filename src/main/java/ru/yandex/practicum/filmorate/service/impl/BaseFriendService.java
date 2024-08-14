@@ -6,6 +6,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FriendService;
 
@@ -25,6 +26,7 @@ public class BaseFriendService implements FriendService {
                 .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, secondUserId)));
 
         userRepository.addFriend(firstUser.getId(), secondUser.getId());
+        userRepository.eventFriend(firstUser.getId(), secondUser.getId(), OperationType.ADD);
         return firstUser;
     }
 
@@ -35,6 +37,7 @@ public class BaseFriendService implements FriendService {
                 .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, secondUserId)));
 
         userRepository.deleteFriend(firstUser.getId(), secondUser.getId());
+        userRepository.eventFriend(firstUser.getId(), secondUser.getId(), OperationType.REMOVE);
         return firstUser;
     }
 

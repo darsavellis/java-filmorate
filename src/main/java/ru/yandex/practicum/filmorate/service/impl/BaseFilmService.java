@@ -3,15 +3,11 @@ package ru.yandex.practicum.filmorate.service.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
 
@@ -21,7 +17,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
@@ -80,12 +75,15 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public Film likeFilm(long filmId, long userId) {
-        return editLike(filmId, userId, likeRepository::addLike);
+        Film result = editLike(filmId, userId, likeRepository::addLike);
+        likeRepository.eventLike(filmId, userId, OperationType.ADD);
+        return result;
     }
 
-    @Override
     public Film deleteLike(long filmId, long userId) {
-        return editLike(filmId, userId, likeRepository::removeLike);
+        Film result = editLike(filmId, userId, likeRepository::removeLike);
+        likeRepository.eventLike(filmId, userId, OperationType.REMOVE);
+        return result;
     }
 
     @Override

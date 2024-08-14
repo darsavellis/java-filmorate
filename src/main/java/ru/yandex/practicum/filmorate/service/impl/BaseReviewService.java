@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
@@ -18,8 +19,7 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class BaseReviewService implements ReviewService {
-
-    private static final String REVIEW_ID_NOT_FOUND = "Review ID=%s not found";
+    static final String REVIEW_ID_NOT_FOUND = "Review ID=%s not found";
 
     final ReviewRepository reviewRepository;
     final UserRepository userRepository;
@@ -43,23 +43,34 @@ public class BaseReviewService implements ReviewService {
     @Override
     public Review createReview(Review review) {
         deepValidateReview(review);
-        return reviewRepository.createReview(review);
+        Review newReview = reviewRepository.createReview(review);
+        reviewRepository.eventReview(newReview.getUserId(), newReview.getReviewId(), OperationType.ADD);
+        return newReview;
     }
 
     @Override
     public Review updateReview(Review review) {
         deepValidateReview(review);
-        return reviewRepository.updateReview(review);
+        Review newReview = reviewRepository.updateReview(review);
+        reviewRepository.eventReview(newReview.getUserId(), newReview.getReviewId(), OperationType.UPDATE);
+        return newReview;
     }
 
     @Override
     public boolean deleteReview(long reviewId) {
-        return reviewRepository.deleteReview(reviewId);
+        Optional<Review> review = reviewRepository.getReviewById(reviewId);
+        if (review.isPresent()) {
+            if (reviewRepository.deleteReview(reviewId)) {
+                reviewRepository.eventReview(review.get().getUserId(), reviewId, OperationType.REMOVE);
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
-    public Review setLikeReview(long reviewId, long userId, boolean ifPositive) {
-        reviewRepository.setLikeReview(reviewId, userId, ifPositive);
+    public Review setLikeReview(long reviewId, long userId, boolean isPositive) {
+        reviewRepository.setLikeReview(reviewId, userId, isPositive);
         return reviewRepository.getReviewById(reviewId).get();
     }
 

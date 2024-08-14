@@ -14,7 +14,7 @@ public class LibraryForCreatingEntities {
         review.setUserId(userId);
         review.setFilmId(filmId);
         review.setIsPositive(true);
-        review.setUseful(1);
+        review.setUseful(0);
         return review;
     }
 

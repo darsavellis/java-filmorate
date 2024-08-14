@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.dal;
 
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
@@ -11,7 +13,7 @@ public interface UserRepository {
 
     Optional<User> findById(long userId);
 
-    User save(User film);
+    User save(User user);
 
     User update(User newUser);
 
@@ -23,6 +25,9 @@ public interface UserRepository {
 
     void deleteFriend(long firstUserId, long secondUserId);
 
+    void eventFriend(long firstUserId, long secondUserId, OperationType operationType);
+
     Set<User> getCommonFriends(long firstUserId, long secondUserId);
 
+    List<Event> getUserEvents(long userId);
 }

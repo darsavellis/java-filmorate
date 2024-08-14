@@ -10,9 +10,7 @@ import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.*;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,8 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @JdbcTest
 @AutoConfigureTestDatabase
 @Import({JdbcReviewRepository.class, JdbcUserRepository.class, JdbcFilmRepository.class, UserRowMapper.class,
-        FriendshipRowMapper.class, GenreRowMapper.class, FilmRowMapper.class, ReviewRowMapper.class,
+        FriendshipRowMapper.class, GenreRowMapper.class, FilmRowMapper.class, ReviewRowMapper.class, EventRowMapper.class,
         DirectorRowMapper.class, MpaRatingRowMapper.class})
+
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcReviewRepositoryTest {
 
@@ -130,5 +129,36 @@ class JdbcReviewRepositoryTest {
         assertThat(receivedReview).isPresent();
         newUseful = receivedReview.get().getUseful();
         assertEquals(oldUseful - 1, newUseful, "Ожидается снижение полезности");
+    }
+
+    @Test
+    public void eventReview() {
+        User user1 = userRepository.save(LibraryForCreatingEntities.getUser(1));
+        User user2 = userRepository.save(LibraryForCreatingEntities.getUser(2));
+        Film film1 = filmRepository.save(LibraryForCreatingEntities.getFilm(1));
+        Film film2 = filmRepository.save(LibraryForCreatingEntities.getFilm(2));
+
+        Review review1 = reviewRepository.createReview(LibraryForCreatingEntities
+                .getReview(user1.getId(), film1.getId()));
+        assertNotNull(review1);
+        Review review2 = reviewRepository.createReview(LibraryForCreatingEntities
+                .getReview(user2.getId(), film2.getId()));
+        assertNotNull(review2);
+
+
+        reviewRepository.eventReview(user1.getId(), review1.getReviewId(), OperationType.ADD);
+        reviewRepository.eventReview(user1.getId(), review1.getReviewId(), OperationType.UPDATE);
+        reviewRepository.eventReview(user1.getId(), review1.getReviewId(), OperationType.REMOVE);
+
+        List<Event> eventList = userRepository.getUserEvents(user1.getId());
+        assertEquals(3, eventList.size(), "Ожидается 3 события");
+        assertEquals(EventType.REVIEW, eventList.get(0).getEventType(), "Ожидается событие Отзыв");
+        assertEquals(OperationType.ADD, eventList.get(0).getOperation(), "Ожидается действие ADD");
+        assertEquals(OperationType.UPDATE, eventList.get(1).getOperation(), "Ожидается действие UPDATE");
+        assertEquals(OperationType.REMOVE, eventList.get(2).getOperation(), "Ожидается действие REMOVE");
+
+        userRepository.delete(user1.getId());
+        eventList = userRepository.getUserEvents(user1.getId());
+        assertEquals(0, eventList.size(), "Ожидается отсутствие событий");
     }
 }
