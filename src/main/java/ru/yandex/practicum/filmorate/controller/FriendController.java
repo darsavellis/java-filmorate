@@ -20,29 +20,29 @@ public class FriendController {
     @PutMapping("/{friend-id}")
     public ResponseEntity<User> addFriend(@PathVariable Long id, @PathVariable("friend-id") Long friendId) {
         return ResponseEntity
-                .status(200)
-                .body(friendsService.addFriend(id, friendId));
+            .status(200)
+            .body(friendsService.addFriend(id, friendId));
     }
 
     @DeleteMapping("/{friend-id}")
     public ResponseEntity<User> deleteFriend(@PathVariable Long id, @PathVariable("friend-id") Long friendId) {
         return ResponseEntity
-                .status(200)
-                .body(friendsService.deleteFriend(id, friendId));
+            .status(200)
+            .body(friendsService.deleteFriend(id, friendId));
     }
 
     @GetMapping
     public ResponseEntity<Collection<User>> getFriends(@PathVariable Long id) {
         return ResponseEntity
-                .status(200)
-                .body(friendsService.getFriends(id));
+            .status(200)
+            .body(friendsService.getFriends(id));
     }
 
     @GetMapping("/common/{user-id}")
     public ResponseEntity<Collection<User>> getCommonFriends(@PathVariable Long id,
                                                              @PathVariable("user-id") Long userId) {
         return ResponseEntity
-                .status(200)
-                .body(friendsService.getCommonFriends(id, userId));
+            .status(200)
+            .body(friendsService.getCommonFriends(id, userId));
     }
 }

@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.impl.BaseFilmService;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -85,11 +87,10 @@ public class FilmController {
             .body(filmService.getCommonFilms(userId, friendId));
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> deleteFilm(@PathVariable long id) {
-        filmService.deleteFilmById(id);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Film> deleteFilm(@PathVariable long id) {
         return ResponseEntity
             .status(200)
-            .body("Фильм успешно удален");
+            .body(filmService.deleteFilmById(id));
     }
 }

@@ -41,10 +41,10 @@ public class BaseFilmService implements FilmService {
     @Override
     public Film getFilmById(long filmId) {
         Film film = filmRepository.getById(filmId)
-                .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
+            .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
 
         MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId())
-                .orElseThrow(() -> new ValidationException(String.format(MPA_RATING_ID_NOT_VALID, filmId)));
+            .orElseThrow(() -> new ValidationException(String.format(MPA_RATING_ID_NOT_VALID, filmId)));
 
         Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
 
@@ -66,7 +66,7 @@ public class BaseFilmService implements FilmService {
     public Film updateFilm(Film newFilm) {
         FilmValidator.validate(newFilm);
         filmRepository.getById(newFilm.getId())
-                .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, newFilm.getId())));
+            .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, newFilm.getId())));
 
         editFilm(newFilm, () -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, newFilm.getId())));
 
@@ -95,9 +95,9 @@ public class BaseFilmService implements FilmService {
         MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId()).orElseThrow(exceptionSupplier);
 
         Set<Genre> genres = getValidatedEntities(film.getGenres(), Genre::getId,
-                genreRepository::getByIds, GENRES_NOT_VALID);
+            genreRepository::getByIds, GENRES_NOT_VALID);
         Set<Director> directors = getValidatedEntities(film.getDirectors(), Director::getId,
-                directorRepository::getByIds, DIRECTORS_NOT_VALID);
+            directorRepository::getByIds, DIRECTORS_NOT_VALID);
         Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
 
         updateFilmFields(film, mpaRating, genres, directors, likes);
@@ -135,9 +135,9 @@ public class BaseFilmService implements FilmService {
 
     private Film mapToSortedFields(Film film) {
         film.setGenres(film.getGenres()
-                .stream()
-                .sorted(Comparator.comparingLong(Genre::getId))
-                .collect(Collectors.toCollection(LinkedHashSet::new)));
+            .stream()
+            .sorted(Comparator.comparingLong(Genre::getId))
+            .collect(Collectors.toCollection(LinkedHashSet::new)));
         return film;
     }
 
@@ -153,9 +153,10 @@ public class BaseFilmService implements FilmService {
     }
 
     @Override
-    public void deleteFilmById(long filmId) {
+    public Film deleteFilmById(long filmId) {
         Film film = filmRepository.getById(filmId)
-                .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
+            .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
         filmRepository.delete(filmId);
+        return film;
     }
 }

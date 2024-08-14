@@ -12,5 +12,4 @@ public interface LikeRepository {
     void removeLike(long filmId, long userId);
 
     void eventLike(long filmId, long userId, OperationType operationType);
-
 }

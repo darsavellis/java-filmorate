@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Event;
@@ -28,43 +29,49 @@ public class UserController {
     @GetMapping
     public ResponseEntity<Collection<User>> getUsers() {
         return ResponseEntity
-                .status(200)
-                .body(userService.getUsers());
+            .status(200)
+            .body(userService.getUsers());
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable long userId) {
+        return ResponseEntity
+            .status(200)
+            .body(userService.getUserById(userId));
     }
 
     @GetMapping("/{id}/feed")
     public ResponseEntity<Collection<Event>> getEventsList(@PathVariable Long id) {
         return ResponseEntity
-                .status(200)
-                .body(userService.getEventsOfUser(id));
+            .status(200)
+            .body(userService.getEventsOfUser(id));
     }
 
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         return ResponseEntity
-                .status(201)
-                .body(userService.createUser(user));
+            .status(201)
+            .body(userService.createUser(user));
     }
 
     @PutMapping
     public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
         return ResponseEntity
-                .status(200)
-                .body(userService.updateUser(user));
+            .status(200)
+            .body(userService.updateUser(user));
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> deleteUser(@PathVariable long userId) {
-        userService.deleteUserById(userId);
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<User> deleteUser(@PathVariable long userId) {
         return ResponseEntity
-                .status(200)
-                .body("Пользователь успешно удален");
+            .status(200)
+            .body(userService.deleteUserById(userId));
     }
 
     @GetMapping("{id}/recommendations")
     public ResponseEntity<List<Film>> getRecommendations(@PathVariable("id") long userId) {
         return ResponseEntity
-                .status(200)
-                .body(filmService.getRecommendations(userId));
+            .status(200)
+            .body(filmService.getRecommendations(userId));
     }
 }
