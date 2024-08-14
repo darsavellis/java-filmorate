@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.dal.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -21,56 +21,52 @@ import java.util.*;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcReviewRepository implements ReviewRepository {
-
     final NamedParameterJdbcOperations jdbc;
     final ReviewRowMapper reviewRowMapper;
 
-
-    private static final String FIND_REVIEW_QUERY = "SELECT * FROM reviews WHERE id = :review_id";
-    private static final String FIND_ALL_REVIEWS_QUERY = "SELECT * FROM reviews LIMIT :count";
-    private static final String FIND_FILM_REVIEWS_QUERY = "SELECT * FROM reviews WHERE film_id = :film_id LIMIT :count";
-    private static final String COUNT_REVIEW_SCORE = "SELECT SUM((is_like - 1 + is_like % 2)) FROM review_user " +
+    static final String FIND_REVIEW_QUERY = "SELECT * FROM reviews WHERE id = :review_id";
+    static final String FIND_ALL_REVIEWS_QUERY = "SELECT * FROM reviews LIMIT :count";
+    static final String FIND_FILM_REVIEWS_QUERY = "SELECT * FROM reviews WHERE film_id = :film_id LIMIT :count";
+    static final String COUNT_REVIEW_SCORE = "SELECT SUM((is_like - 1 + is_like % 2)) FROM review_user " +
             "WHERE review_id = :review_id";
-
-    private static final String COUNT_FILMS_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
+    static final String COUNT_FILMS_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
             "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id WHERE r.film_id = :film_id GROUP BY r.id";
 
-    private static final String COUNT_ALL_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
+    static final String COUNT_ALL_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
             "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id GROUP BY r.id";
 
-    private static final String REVIEW_INSERT_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id, timestamp) " +
+    static final String REVIEW_INSERT_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id, timestamp) " +
             "VALUES(:content, :is_positive, :user_id, :film_id, :timestamp)";
 
-    private static final String REVIEW_UPDATE_QUERY = "UPDATE reviews SET content = :content, " +
+    static final String REVIEW_UPDATE_QUERY = "UPDATE reviews SET content = :content, " +
             "is_positive = :is_positive, user_id = :user_id, film_id = :film_id, timestamp = :timestamp WHERE id = :id";
 
-    private static final String REVIEW_DELETE_QUERY = "DELETE FROM reviews WHERE id = :id";
+    static final String REVIEW_DELETE_QUERY = "DELETE FROM reviews WHERE id = :id";
 
-    private static final String ADD_LIKE_QUERY = "MERGE INTO review_user (review_id, user_id, is_like) " +
+    static final String ADD_LIKE_QUERY = "MERGE INTO review_user (review_id, user_id, is_like) " +
             "VALUES(:review_id, :user_id, :is_like)";
-    private static final String REMOVE_ANY_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
+    static final String REMOVE_ANY_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
             "user_id = :user_id";
 
-    private static final String REMOVE_CERTAIN_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
+    static final String REMOVE_CERTAIN_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
             "user_id = :user_id AND is_like = :is_like";
 
     @Override
     public Optional<Review> getReviewById(long reviewId) {
 
         try {
-            Review review = jdbc.queryForObject(
+            Optional<Review> review = Optional.ofNullable(jdbc.queryForObject(
                     FIND_REVIEW_QUERY,
-                    new MapSqlParameterSource("review_id", reviewId),
+                    Map.of("review_id", reviewId),
                     reviewRowMapper
-            );
-            Long score = jdbc.queryForObject(COUNT_REVIEW_SCORE, new MapSqlParameterSource("review_id",
-                    reviewId), Long.class);
+            ));
+            Long score = jdbc.queryForObject(COUNT_REVIEW_SCORE, Map.of("review_id", reviewId), Long.class);
 
-            if (Objects.nonNull(score)) {
-                review.setUseful(score);
+            if (Objects.nonNull(score) && review.isPresent()) {
+                review.get().setUseful(score);
             }
-            return Optional.ofNullable(review);
-        } catch (EmptyResultDataAccessException e) {
+            return review;
+        } catch (DataAccessException ignored) {
             return Optional.empty();
         }
     }
@@ -124,10 +120,14 @@ public class JdbcReviewRepository implements ReviewRepository {
 
         jdbc.update(REVIEW_INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
 
-        long id = generatedKeyHolder.getKeyAs(Long.class);
-        review.setReviewId(id);
-        review.setUseful(0);
-        return review;
+        Long id = generatedKeyHolder.getKeyAs(Long.class);
+        if (Objects.nonNull(id)) {
+            review.setReviewId(id);
+            review.setUseful(0);
+            return review;
+        } else {
+            return null;
+        }
     }
 
     @Override
