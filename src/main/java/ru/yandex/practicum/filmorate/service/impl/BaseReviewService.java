@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
@@ -16,17 +15,16 @@ import ru.yandex.practicum.filmorate.service.ReviewService;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class BaseReviewService implements ReviewService {
 
-    private static final String REVIEW_ID_NOT_FOUND = "Review ID=%s not found";
+    static final String REVIEW_ID_NOT_FOUND = "Review ID=%s not found";
 
-    private final ReviewRepository reviewRepository;
-    private final UserRepository userRepository;
-    private final FilmRepository filmRepository;
+    final ReviewRepository reviewRepository;
+    final UserRepository userRepository;
+    final FilmRepository filmRepository;
 
     @Override
     public Review getReviewById(long reviewId) {
@@ -72,8 +70,8 @@ public class BaseReviewService implements ReviewService {
     }
 
     @Override
-    public Review setLikeReview(long reviewId, long userId, boolean ifPositive) {
-        reviewRepository.setLikeReview(reviewId, userId, ifPositive);
+    public Review setLikeReview(long reviewId, long userId, boolean isPositive) {
+        reviewRepository.setLikeReview(reviewId, userId, isPositive);
         return reviewRepository.getReviewById(reviewId).get();
     }
 

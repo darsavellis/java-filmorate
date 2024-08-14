@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,7 +23,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
@@ -113,15 +111,15 @@ public class BaseFilmService implements FilmService {
     }
 
     public Film likeFilm(long filmId, long userId) {
-        Film res = editLike(filmId, userId, likeRepository::addLike);
+        Film result = editLike(filmId, userId, likeRepository::addLike);
         likeRepository.eventLike(filmId, userId, OperationType.ADD);
-        return res;
+        return result;
     }
 
     public Film removeLike(long filmId, long userId) {
-        Film res = editLike(filmId, userId, likeRepository::removeLike);
+        Film result = editLike(filmId, userId, likeRepository::removeLike);
         likeRepository.eventLike(filmId, userId, OperationType.REMOVE);
-        return res;
+        return result;
     }
 
     @GetMapping("/popular")
@@ -131,8 +129,7 @@ public class BaseFilmService implements FilmService {
 
     private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
         action.accept(filmId, userId);
-        Film res = getFilmById(filmId);
-        return res;
+        return getFilmById(filmId);
     }
 
     private Film mapToSortedFields(Film film) {

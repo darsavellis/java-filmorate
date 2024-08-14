@@ -19,7 +19,7 @@ public interface ReviewRepository {
 
     boolean deleteReview(long reviewId);
 
-    void setLikeReview(long reviewId, long userId, boolean ifPositive);
+    void setLikeReview(long reviewId, long userId, boolean isPositive);
 
     boolean deleteLikeReview(long reviewId, long userId); // удаляет и лайки и дизлайки
 
