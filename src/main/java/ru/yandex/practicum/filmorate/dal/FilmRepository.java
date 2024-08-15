@@ -23,4 +23,6 @@ public interface FilmRepository {
     List<Film> getCommonFilms(long userId, long friendId);
 
     List<Film> getRecommendations(long userId);
+
+    List<Film> getTopPopularFilms(Long limit, Long genreId, Long year);
 }

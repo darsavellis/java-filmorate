@@ -32,9 +32,10 @@ public class BaseReviewService implements ReviewService {
     }
 
     @Override
-    public List<Review> getReviewsByFilmId(Optional<Long> filmId, long count) {
-        if (filmId.isPresent()) {
-            return reviewRepository.getReviewsByFilmId(filmId.get(), count);
+    public List<Review> getReviewsByFilmId(Long filmId, long count) {
+        Optional<Long> optionalFilmId = Optional.ofNullable(filmId);
+        if (optionalFilmId.isPresent()) {
+            return reviewRepository.getReviewsByFilmId(optionalFilmId.get(), count);
         } else {
             return reviewRepository.getAllReviews(count);
         }
