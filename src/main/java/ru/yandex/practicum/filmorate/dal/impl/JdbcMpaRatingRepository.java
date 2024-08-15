@@ -33,7 +33,7 @@ public class JdbcMpaRatingRepository implements MpaRatingRepository {
     public Optional<MpaRating> getById(long mpaRatingId) {
         try {
             return Optional.ofNullable(jdbc.queryForObject(
-                    FIND_BY_ID_QUERY, new MapSqlParameterSource("id", mpaRatingId), mpaRatingRowMapper
+                FIND_BY_ID_QUERY, new MapSqlParameterSource("id", mpaRatingId), mpaRatingRowMapper
             ));
         } catch (EmptyResultDataAccessException ignored) {
             return Optional.empty();

@@ -26,6 +26,6 @@ public class BaseGenreService implements GenreService {
     @Override
     public Genre getGenreById(long genreId) {
         return genreRepository.getGenreById(genreId)
-                .orElseThrow(() -> new NotFoundException(String.format(GENRE_ID_NOT_FOUND, genreId)));
+            .orElseThrow(() -> new NotFoundException(String.format(GENRE_ID_NOT_FOUND, genreId)));
     }
 }

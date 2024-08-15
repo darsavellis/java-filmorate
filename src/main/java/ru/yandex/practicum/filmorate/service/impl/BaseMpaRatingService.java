@@ -26,6 +26,6 @@ public class BaseMpaRatingService implements MpaRatingService {
     @Override
     public MpaRating getMpaRatingById(long mpaRatingId) {
         return mpaRatingRepository.getById(mpaRatingId)
-                .orElseThrow(() -> new NotFoundException(String.format(MPA_RATING_ID_NOT_VALID, mpaRatingId)));
+            .orElseThrow(() -> new NotFoundException(String.format(MPA_RATING_ID_NOT_VALID, mpaRatingId)));
     }
 }

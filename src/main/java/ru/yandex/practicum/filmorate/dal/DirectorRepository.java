@@ -18,4 +18,6 @@ public interface DirectorRepository {
     Director update(Director newDirector);
 
     boolean delete(long directorId);
+
+    Set<Director> getDirectorsByFilmId(long filmId);
 }

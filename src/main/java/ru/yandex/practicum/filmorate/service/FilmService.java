@@ -28,4 +28,6 @@ public interface FilmService {
     List<Film> getRecommendations(long userId);
 
     Film deleteFilmById(long id);
+
+    List<Film> getTopPopularFilms(Long count, Long genreId, Long year);
 }

@@ -21,9 +21,9 @@ public class BaseFriendService implements FriendService {
 
     public User addFriend(long firstUserId, long secondUserId) throws NotFoundException {
         User firstUser = userRepository.findById(firstUserId)
-                .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, firstUserId)));
+            .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, firstUserId)));
         User secondUser = userRepository.findById(secondUserId)
-                .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, secondUserId)));
+            .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, secondUserId)));
 
         userRepository.addFriend(firstUser.getId(), secondUser.getId());
         userRepository.eventFriend(firstUser.getId(), secondUser.getId(), OperationType.ADD);
@@ -32,9 +32,9 @@ public class BaseFriendService implements FriendService {
 
     public User deleteFriend(long firstUserId, long secondUserId) throws NotFoundException {
         User firstUser = userRepository.findById(firstUserId)
-                .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, firstUserId)));
+            .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, firstUserId)));
         User secondUser = userRepository.findById(secondUserId)
-                .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, secondUserId)));
+            .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, secondUserId)));
 
         userRepository.deleteFriend(firstUser.getId(), secondUser.getId());
         userRepository.eventFriend(firstUser.getId(), secondUser.getId(), OperationType.REMOVE);
@@ -43,7 +43,7 @@ public class BaseFriendService implements FriendService {
 
     public Collection<User> getFriends(long userId) throws NotFoundException {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, userId)));
+            .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, userId)));
 
         return userRepository.getFriends(user.getId());
     }
