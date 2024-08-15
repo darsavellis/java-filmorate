@@ -83,7 +83,14 @@ public class FilmController {
     @GetMapping("/common")
     public ResponseEntity<List<Film>> commonFilms(@RequestParam long userId, long friendId) {
         return ResponseEntity
-                .status(200)
-                .body(filmService.getCommonFilms(userId, friendId));
+            .status(200)
+            .body(filmService.getCommonFilms(userId, friendId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Film> deleteFilm(@PathVariable long id) {
+        return ResponseEntity
+            .status(200)
+            .body(filmService.deleteFilmById(id));
     }
 }

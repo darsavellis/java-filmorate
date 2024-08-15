@@ -19,13 +19,16 @@ import java.util.Set;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcLikeRepository implements LikeRepository {
-    static String FIND_ALL_LIKES_QUERY = "SELECT user_id FROM likes WHERE film_id = :film_id";
+    static final String FIND_ALL_LIKES_QUERY = "SELECT user_id FROM likes WHERE film_id = :film_id";
 
-    static String ADD_LIKE_QUERY = "INSERT INTO likes (film_id, user_id) VALUES(:film_id, :user_id)";
-    static String REMOVE_LIKE_QUERY = "DELETE FROM likes WHERE user_id = :user_id AND film_id = :film_id";
-    static String INSERT_EVENT_QUERY = "INSERT INTO events (user_id, entity_id, timestamp, type_id, operation_id) " +
-            "SELECT :user_id, :entity_id, :timestamp, t.id , o.id FROM event_types t, operation_types o " +
-            "WHERE t.name = :event_type AND o.name = :operation_type";
+    static final String ADD_LIKE_QUERY = "INSERT INTO likes (film_id, user_id) VALUES(:film_id, :user_id)";
+
+    static final String REMOVE_LIKE_QUERY = "DELETE FROM likes WHERE user_id = :user_id AND film_id = :film_id";
+
+    static final String INSERT_EVENT_QUERY = "INSERT INTO events (user_id, entity_id, timestamp, type_id, operation_id) " +
+        "SELECT :user_id, :entity_id, :timestamp, t.id , o.id FROM event_types t, operation_types o " +
+        "WHERE t.name = :event_type AND o.name = :operation_type";
+
     final NamedParameterJdbcOperations jdbc;
 
     @Override
@@ -47,7 +50,7 @@ public class JdbcLikeRepository implements LikeRepository {
     public void eventLike(long filmId, long userId, OperationType operationType) {
         Timestamp timestamp = Timestamp.from(Instant.now());
         jdbc.update(INSERT_EVENT_QUERY, Map.of("user_id", userId, "entity_id", filmId,
-                "timestamp", timestamp, "event_type", EventType.LIKE.toString(),
-                "operation_type", operationType.toString()));
+            "timestamp", timestamp, "event_type", EventType.LIKE.toString(),
+            "operation_type", operationType.toString()));
     }
 }

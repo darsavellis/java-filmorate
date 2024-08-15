@@ -30,6 +30,13 @@ public class UserController {
                 .body(userService.getUsers());
     }
 
+    @GetMapping("/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable long userId) {
+        return ResponseEntity
+                .status(200)
+                .body(userService.getUserById(userId));
+    }
+
     @GetMapping("/{id}/feed")
     public ResponseEntity<Collection<Event>> getEventsList(@PathVariable Long id) {
         return ResponseEntity
@@ -49,6 +56,13 @@ public class UserController {
         return ResponseEntity
                 .status(200)
                 .body(userService.updateUser(user));
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<User> deleteUser(@PathVariable long userId) {
+        return ResponseEntity
+                .status(200)
+                .body(userService.deleteUserById(userId));
     }
 
     @GetMapping("{id}/recommendations")
