@@ -46,15 +46,24 @@ public class BaseReviewService implements ReviewService {
         deepValidateReview(review);
         Review newReview = reviewRepository.createReview(review);
         reviewRepository.eventReview(newReview.getUserId(), newReview.getReviewId(), OperationType.ADD);
+
         return newReview;
     }
 
     @Override
-    public Review updateReview(Review review) {
-        deepValidateReview(review);
-        Review newReview = reviewRepository.updateReview(review);
-        reviewRepository.eventReview(newReview.getUserId(), newReview.getReviewId(), OperationType.UPDATE);
-        return newReview;
+    public Review updateReview(Review newReview) {
+        deepValidateReview(newReview);
+        Review review = reviewRepository.getReviewById(newReview.getReviewId())
+            .orElseThrow(() -> new NotFoundException(String.format(REVIEW_ID_NOT_FOUND, newReview.getReviewId())));
+
+        review.setUseful(newReview.getUseful());
+        review.setContent(newReview.getContent());
+        review.setIsPositive(newReview.getIsPositive());
+
+        reviewRepository.updateReview(review);
+
+        reviewRepository.eventReview(review.getUserId(), review.getReviewId(), OperationType.UPDATE);
+        return review;
     }
 
     @Override

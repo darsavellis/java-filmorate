@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.dal.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
@@ -93,6 +92,10 @@ public class JdbcFilmRepository implements FilmRepository {
         SELECT f.* FROM FILMS f
         LEFT JOIN FILM_DIRECTOR fd ON fd.FILM_ID =f.ID
         LEFT JOIN DIRECTORS d ON fd.DIRECTOR_ID = d.ID
+        LEFT JOIN LIKES l ON l.FILM_ID = f.ID
+        WHERE (f.name ILIKE :film_name) OR (d.name ILIKE :director_name)
+        GROUP BY f.ID
+        ORDER BY count(l.USER_ID) DESC
         """;
 
     final NamedParameterJdbcOperations jdbc;
@@ -188,29 +191,45 @@ public class JdbcFilmRepository implements FilmRepository {
 
     @Override
     public List<Film> searchFilms(String query, String by) {
-        query = "%" + query + "%";
-        Map<Long, Film> filmMap = jdbc.query(buildSearchQuery(query, by), Map.of("query", query), filmRowMapper)
-            .stream().collect(Collectors.toMap(Film::getId, Function.identity()));
+        Map<Long, Film> filmMap = getEntitiesMap(SEARCH_FILMS_QUERY, filmRowMapper,
+            Film::getId, buildParams(query, by).getValues(), LinkedHashMap::new);
 
         Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
         Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
+        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_ALL_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
+
+        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
 
         fillGenres(filmMap, genreMap);
         fillDirectors(filmMap, directorMap);
+        fillLikes(filmMap);
 
         return new ArrayList<>(filmMap.values());
     }
 
-    private <T> Map<Long, T> getEntitiesMap(String query, RowMapper<T> rowMapper, Function<T, Long> idExtractor) {
+    MapSqlParameterSource buildParams(String query, String by) {
+        query = "%" + query + "%";
+        return switch (by) {
+            case "title" -> new MapSqlParameterSource("film_name", query)
+                .addValue("director_name", null);
+            case "director" -> new MapSqlParameterSource("director_name", query)
+                .addValue("film_name", null);
+            case "director,title", "title,director" -> new MapSqlParameterSource("film_name", query)
+                .addValue("director_name", query);
+            default -> throw new ValidationException(String.format("Operation %s not supported", by));
+        };
+    }
+
+    <T> Map<Long, T> getEntitiesMap(String query, RowMapper<T> rowMapper, Function<T, Long> idExtractor) {
         return getEntitiesMap(query, rowMapper, idExtractor, new HashMap<>(), HashMap::new);
     }
 
-    private <T> Map<Long, T> getEntitiesMap(String query, RowMapper<T> rowMapper, Function<T, Long> idExtractor,
+    <T> Map<Long, T> getEntitiesMap(String query, RowMapper<T> rowMapper, Function<T, Long> idExtractor,
                                             Map<String, ?> params) {
         return getEntitiesMap(query, rowMapper, idExtractor, params, LinkedHashMap::new);
     }
 
-    private <T> Map<Long, T> getEntitiesMap(String query, RowMapper<T> rowMapper,
+    <T> Map<Long, T> getEntitiesMap(String query, RowMapper<T> rowMapper,
                                             Function<T, Long> idExtractor, Map<String, ?> params,
                                             Supplier<Map<Long, T>> mapSupplier) {
         return getEntitiesByCollector(query, rowMapper, idExtractor, params, Collectors.toMap(
@@ -229,22 +248,6 @@ public class JdbcFilmRepository implements FilmRepository {
             case "likes" -> "ORDER BY l DESC";
             default -> throw new ValidationException("Unexpected value: " + sortBy.toLowerCase());
         };
-    }
-
-    String buildSearchQuery(String query, String by) {
-        StringBuilder queryBuilder = new StringBuilder(SEARCH_FILMS_QUERY);
-        switch (by.toLowerCase()) {
-            case "director" -> {
-                return queryBuilder.append("WHERE d.name LIKE :query").toString();
-            }
-            case "title" -> {
-                return queryBuilder.append("WHERE f.name LIKE :query").toString();
-            }
-            case "director,title", "title,director" -> {
-                return queryBuilder.append("WHERE d.name LIKE :query OR f.name LIKE :query").toString();
-            }
-            default -> throw new ValidationException("Parameters not supported");
-        }
     }
 
     void fillLikes(Map<Long, Film> filmMap) {

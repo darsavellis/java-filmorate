@@ -18,6 +18,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class JdbcReviewRepository implements ReviewRepository {
         "VALUES (:content, :is_positive, :user_id, :film_id, :timestamp)";
 
     static final String REVIEW_UPDATE_QUERY = "UPDATE reviews SET content = :content, " +
-        "is_positive = :is_positive, user_id = :user_id, film_id = :film_id, timestamp = :timestamp WHERE id = :id";
+        "is_positive = :is_positive, timestamp = :timestamp WHERE id = :id";
 
     static final String REVIEW_DELETE_QUERY = "DELETE FROM reviews WHERE id = :id";
 
@@ -93,7 +94,8 @@ public class JdbcReviewRepository implements ReviewRepository {
                 reviewMap.put(review.getReviewId(), review);
             });
 
-        return new ArrayList<>(reviewMap.values());
+        return reviewMap.values().stream().sorted(Comparator.comparing(Review::getUseful).reversed())
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -110,7 +112,8 @@ public class JdbcReviewRepository implements ReviewRepository {
             reviewMap.put(review.getReviewId(), review);
         });
 
-        return new ArrayList<>(reviewMap.values());
+        return reviewMap.values().stream().sorted(Comparator.comparing(Review::getUseful).reversed())
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -127,12 +130,12 @@ public class JdbcReviewRepository implements ReviewRepository {
         jdbc.update(REVIEW_INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
 
         Long id = generatedKeyHolder.getKeyAs(Long.class);
+
         if (Objects.nonNull(id)) {
             review.setReviewId(id);
             return review;
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override
@@ -142,8 +145,6 @@ public class JdbcReviewRepository implements ReviewRepository {
         SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("id", review.getReviewId())
             .addValue("content", review.getContent())
-            .addValue("film_id", review.getFilmId())
-            .addValue("user_id", review.getUserId())
             .addValue("is_positive", review.getIsPositive())
             .addValue("timestamp", timestamp);
         jdbc.update(REVIEW_UPDATE_QUERY, parameters);
