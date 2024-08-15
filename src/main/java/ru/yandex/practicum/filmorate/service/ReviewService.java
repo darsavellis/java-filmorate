@@ -3,12 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ReviewService {
     Review getReviewById(long reviewId);
 
-    List<Review> getReviewsByFilmId(Optional<Long> filmId, long count);
+    List<Review> getReviewsByFilmId(Long filmId, long count);
 
     Review createReview(Review review);
 

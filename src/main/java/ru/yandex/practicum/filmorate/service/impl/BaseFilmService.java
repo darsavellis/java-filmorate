@@ -93,8 +93,8 @@ public class BaseFilmService implements FilmService {
     }
 
     @Override
-    public List<Film> getMostPopularFilms(Optional<Long> count) {
-        return filmRepository.getTop(count.orElse(10L));
+    public List<Film> getMostPopularFilms(long count) {
+        return filmRepository.getTop(count);
     }
 
     @Override
@@ -127,32 +127,7 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public List<Film> getTopPopularFilms(Long limit, Long genreId, Long year) {
-        List<Film> top = filmRepository.getAll().stream()
-            .sorted((o1, o2) -> o2.getLikes().size() - o1.getLikes().size())
-            .collect(Collectors.toList());
-
-        if (genreId != null || year != null) {
-            return top.stream()
-                .filter(film -> {
-                    if (genreId != null) {
-                        return film.getGenres().stream().anyMatch(genre -> genre.getId() == genreId);
-                    } else {
-                        return true;
-                    }
-                })
-                .filter(film -> {
-                    if (year != null) {
-                        return film.getReleaseDate().getYear() == year;
-                    } else {
-                        return true;
-                    }
-                })
-                .collect(Collectors.toList());
-        }
-        if (limit != null) {
-            top = top.stream().limit(limit).toList();
-        }
-        return top;
+        return filmRepository.getTopPopularFilms(limit, genreId, year);
     }
 
     void editFilm(Film film, Supplier<? extends RuntimeException> exceptionSupplier) {
@@ -167,8 +142,8 @@ public class BaseFilmService implements FilmService {
         updateFilmFields(film, mpaRating, genres, directors, likes);
     }
 
-    <T> Set<T> getValidatedEntities(Set<T> entitySet, Function<T, Long> idExtractor,
-                                    Function<List<Long>, Set<T>> convertIds, String errorMessage) {
+    private <T> Set<T> getValidatedEntities(Set<T> entitySet, Function<T, Long> idExtractor,
+                                            Function<List<Long>, Set<T>> convertIds, String errorMessage) {
         List<Long> entityIds = entitySet.stream().map(idExtractor).toList();
         Set<T> entities = convertIds.apply(entityIds);
         if (entityIds.size() != entities.size()) {

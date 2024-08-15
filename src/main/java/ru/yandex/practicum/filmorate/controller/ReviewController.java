@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/reviews")
@@ -24,7 +23,7 @@ public class ReviewController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Review>> getReviewsByFilmId(@RequestParam(required = false) Optional<Long> filmId,
+    public ResponseEntity<List<Review>> getReviewsByFilmId(@RequestParam(required = false) Long filmId,
                                                            @RequestParam(defaultValue = "10") long count) {
         return ResponseEntity
             .status(200)
