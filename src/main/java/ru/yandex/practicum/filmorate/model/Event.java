@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @Data
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Event {
-    long id;
+    long eventId;
     @Positive
     long userId;
     @NotNull

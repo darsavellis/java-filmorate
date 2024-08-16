@@ -86,6 +86,7 @@ public class BaseFilmService implements FilmService {
         return result;
     }
 
+    @Override
     public Film deleteLike(long filmId, long userId) {
         Film result = editLike(filmId, userId, likeRepository::removeLike);
         likeRepository.eventLike(filmId, userId, OperationType.REMOVE);
@@ -130,6 +131,11 @@ public class BaseFilmService implements FilmService {
         return filmRepository.getTopPopularFilms(limit, genreId, year);
     }
 
+    @Override
+    public List<Film> searchFilms(String query, String by) {
+        return filmRepository.searchFilms(query, by);
+    }
+
     void editFilm(Film film, Supplier<? extends RuntimeException> exceptionSupplier) {
         MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId()).orElseThrow(exceptionSupplier);
 
@@ -142,8 +148,8 @@ public class BaseFilmService implements FilmService {
         updateFilmFields(film, mpaRating, genres, directors, likes);
     }
 
-    private <T> Set<T> getValidatedEntities(Set<T> entitySet, Function<T, Long> idExtractor,
-                                            Function<List<Long>, Set<T>> convertIds, String errorMessage) {
+    <T> Set<T> getValidatedEntities(Set<T> entitySet, Function<T, Long> idExtractor,
+                                    Function<List<Long>, Set<T>> convertIds, String errorMessage) {
         List<Long> entityIds = entitySet.stream().map(idExtractor).toList();
         Set<T> entities = convertIds.apply(entityIds);
         if (entityIds.size() != entities.size()) {

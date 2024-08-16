@@ -21,6 +21,8 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class BaseUserService implements UserService {
     static final String USER_ID_NOT_FOUND = "User ID=%s not found";
+    static final String NOT_FOUND_EVENTS_FOR_USER = "Not found events for user %s";
+
     final UserRepository userRepository;
 
     public Collection<User> getUsers() {
@@ -35,17 +37,24 @@ public class BaseUserService implements UserService {
 
     @Override
     public Collection<Event> getEventsOfUser(Long userId) {
+        Collection<Event> event = userRepository.getUserEvents(userId);
+        if (event.isEmpty()) {
+            throw new NotFoundException(String.format(NOT_FOUND_EVENTS_FOR_USER, userId));
+        }
+
         return userRepository.getUserEvents(userId);
     }
 
+    @Override
     public User createUser(User user) throws ValidationException {
         UserValidator.validate(user);
         return userRepository.save(user);
     }
 
+    @Override
     public User updateUser(User newUser) throws ValidationException {
         UserValidator.validate(newUser);
-        User user = userRepository.findById(newUser.getId())
+        userRepository.findById(newUser.getId())
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, newUser.getId())));
 
         return userRepository.update(newUser);
@@ -60,5 +69,4 @@ public class BaseUserService implements UserService {
         userRepository.delete(userId);
         return user;
     }
-
 }

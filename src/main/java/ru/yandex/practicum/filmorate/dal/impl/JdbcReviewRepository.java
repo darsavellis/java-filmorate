@@ -18,14 +18,12 @@ import ru.yandex.practicum.filmorate.model.Review;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcReviewRepository implements ReviewRepository {
-    final NamedParameterJdbcOperations jdbc;
-    final ReviewRowMapper reviewRowMapper;
-
     static final String FIND_REVIEW_QUERY = "SELECT * FROM reviews WHERE id = :review_id";
     static final String FIND_ALL_REVIEWS_QUERY = "SELECT * FROM reviews LIMIT :count";
     static final String FIND_FILM_REVIEWS_QUERY = "SELECT * FROM reviews WHERE film_id = :film_id LIMIT :count";
@@ -33,30 +31,25 @@ public class JdbcReviewRepository implements ReviewRepository {
         "WHERE review_id = :review_id";
     static final String COUNT_FILMS_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
         "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id WHERE r.film_id = :film_id GROUP BY r.id";
-
     static final String COUNT_ALL_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
         "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id GROUP BY r.id";
-
     static final String REVIEW_INSERT_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id, timestamp) " +
         "VALUES (:content, :is_positive, :user_id, :film_id, :timestamp)";
-
     static final String REVIEW_UPDATE_QUERY = "UPDATE reviews SET content = :content, " +
-        "is_positive = :is_positive, user_id = :user_id, film_id = :film_id, timestamp = :timestamp WHERE id = :id";
-
+        "is_positive = :is_positive, timestamp = :timestamp WHERE id = :id";
     static final String REVIEW_DELETE_QUERY = "DELETE FROM reviews WHERE id = :id";
-
     static final String ADD_LIKE_QUERY = "MERGE INTO review_user (review_id, user_id, is_like) " +
         "VALUES (:review_id, :user_id, :is_like)";
-
     static final String REMOVE_ANY_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
         "user_id = :user_id";
-
     static final String REMOVE_CERTAIN_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
         "user_id = :user_id AND is_like = :is_like";
-
     static final String INSERT_EVENT_QUERY = "INSERT INTO events (user_id, entity_id, timestamp, type_id, operation_id) " +
         "SELECT :user_id, :entity_id, :timestamp, t.id , o.id FROM event_types t, operation_types o " +
         "WHERE t.name = :event_type AND o.name = :operation_type";
+
+    final NamedParameterJdbcOperations jdbc;
+    final ReviewRowMapper reviewRowMapper;
 
     @Override
     public Optional<Review> getReviewById(long reviewId) {
@@ -93,7 +86,8 @@ public class JdbcReviewRepository implements ReviewRepository {
                 reviewMap.put(review.getReviewId(), review);
             });
 
-        return new ArrayList<>(reviewMap.values());
+        return reviewMap.values().stream().sorted(Comparator.comparing(Review::getUseful).reversed())
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -110,7 +104,8 @@ public class JdbcReviewRepository implements ReviewRepository {
             reviewMap.put(review.getReviewId(), review);
         });
 
-        return new ArrayList<>(reviewMap.values());
+        return reviewMap.values().stream().sorted(Comparator.comparing(Review::getUseful).reversed())
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -127,12 +122,12 @@ public class JdbcReviewRepository implements ReviewRepository {
         jdbc.update(REVIEW_INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
 
         Long id = generatedKeyHolder.getKeyAs(Long.class);
+
         if (Objects.nonNull(id)) {
             review.setReviewId(id);
             return review;
-        } else {
-            return null;
         }
+        return null;
     }
 
     @Override
@@ -142,8 +137,6 @@ public class JdbcReviewRepository implements ReviewRepository {
         SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("id", review.getReviewId())
             .addValue("content", review.getContent())
-            .addValue("film_id", review.getFilmId())
-            .addValue("user_id", review.getUserId())
             .addValue("is_positive", review.getIsPositive())
             .addValue("timestamp", timestamp);
         jdbc.update(REVIEW_UPDATE_QUERY, parameters);
@@ -162,17 +155,15 @@ public class JdbcReviewRepository implements ReviewRepository {
     }
 
     @Override
-    public boolean deleteLikeReview(long reviewId, long userId) {
+    public void deleteLikeReview(long reviewId, long userId) {
         // REMOVE_ANY_LIKE_QUERY
         int rows = jdbc.update(REMOVE_ANY_LIKE_QUERY, Map.of("review_id", reviewId, "user_id", userId));
-        return rows > 0;
     }
 
     @Override
-    public boolean deleteDislikeReview(long reviewId, long userId) {
+    public void deleteDislikeReview(long reviewId, long userId) {
         int rows = jdbc.update(REMOVE_CERTAIN_LIKE_QUERY, Map.of("review_id", reviewId, "user_id", userId,
             "is_like", false));
-        return rows > 0;
     }
 
     @Override

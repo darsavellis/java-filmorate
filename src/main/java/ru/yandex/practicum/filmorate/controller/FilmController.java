@@ -91,4 +91,13 @@ public class FilmController {
             .status(200)
             .body(filmService.deleteFilmById(id));
     }
+
+    @GetMapping("/search")
+    @ResponseBody
+    public ResponseEntity<Collection<Film>> searchFilm(@RequestParam String query,
+                                                       @RequestParam String by) {
+        return ResponseEntity
+            .status(200)
+            .body(filmService.searchFilms(query, by));
+    }
 }
