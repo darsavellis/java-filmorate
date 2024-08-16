@@ -44,7 +44,6 @@ public class JdbcFilmRepository implements FilmRepository {
         SELECT f.genre_id AS id, g.name FROM film_genre AS f
         JOIN genres g ON g.id = f.genre_id WHERE film_id = :film_id
         """;
-
     static final String FILM_INSERT_QUERY = """
         INSERT INTO films (name, description, release_date, duration, rating_id)
         VALUES(:name, :description, :release_date, :duration, :rating_id)
@@ -207,6 +206,66 @@ public class JdbcFilmRepository implements FilmRepository {
         return new ArrayList<>(filmMap.values());
     }
 
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        Map<Long, Film> filmMap = new HashMap<>();
+
+        jdbc.query(LIST_OF_COMMON_FILMS, Map.of("userId", userId, "friendId", friendId), filmRowMapper)
+            .forEach(film -> filmMap.put(film.getId(), film));
+        Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
+        Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
+        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_ALL_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
+
+        fillGenres(filmMap, genreMap);
+        fillDirectors(filmMap, directorMap);
+        fillLikes(filmMap);
+
+        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
+        return new ArrayList<>(filmMap.values());
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+        Map<Long, Film> filmMap = new HashMap<>();
+
+        jdbc.query(LIST_OF_RECOMMENDED_FILMS, Map.of("userId", userId), filmRowMapper)
+            .forEach(film -> filmMap.put(film.getId(), film));
+        Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
+        Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
+        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_ALL_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
+
+        fillGenres(filmMap, genreMap);
+        fillDirectors(filmMap, directorMap);
+        fillLikes(filmMap);
+
+        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
+
+        return new ArrayList<>(filmMap.values());
+    }
+
+    @Override
+    public List<Film> getTopPopularFilms(Long limit, Long genreId, Long year) {
+        MapSqlParameterSource params = new MapSqlParameterSource()
+            .addValue("genre_id", genreId)
+            .addValue("year", year)
+            .addValue("limit", limit);
+
+        Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
+        Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
+        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_ALL_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
+
+        Map<Long, Film> filmMap = getEntitiesMap(buildTopFilmsQuery(genreId, year), filmRowMapper, Film::getId,
+            params.getValues());
+
+        fillGenres(filmMap, genreMap);
+        fillDirectors(filmMap, directorMap);
+        fillLikes(filmMap);
+
+        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
+
+        return new ArrayList<>(filmMap.values());
+    }
+
     MapSqlParameterSource buildParams(String query, String by) {
         query = "%" + query + "%";
         return switch (by) {
@@ -225,13 +284,13 @@ public class JdbcFilmRepository implements FilmRepository {
     }
 
     <T> Map<Long, T> getEntitiesMap(String query, RowMapper<T> rowMapper, Function<T, Long> idExtractor,
-                                            Map<String, ?> params) {
+                                    Map<String, ?> params) {
         return getEntitiesMap(query, rowMapper, idExtractor, params, LinkedHashMap::new);
     }
 
     <T> Map<Long, T> getEntitiesMap(String query, RowMapper<T> rowMapper,
-                                            Function<T, Long> idExtractor, Map<String, ?> params,
-                                            Supplier<Map<Long, T>> mapSupplier) {
+                                    Function<T, Long> idExtractor, Map<String, ?> params,
+                                    Supplier<Map<Long, T>> mapSupplier) {
         return getEntitiesByCollector(query, rowMapper, idExtractor, params, Collectors.toMap(
             idExtractor, Function.identity(), (oldFilm, newFilm) -> oldFilm, mapSupplier
         ));
@@ -312,66 +371,6 @@ public class JdbcFilmRepository implements FilmRepository {
 
         jdbc.update(FILM_GENRE_DELETE_QUERY, deleteFilmGenreParam);
         jdbc.update(FILM_DIRECTOR_DELETE_QUERY, deleteFilmDirectorParam);
-    }
-
-    @Override
-    public List<Film> getCommonFilms(long userId, long friendId) {
-        Map<Long, Film> filmMap = new HashMap<>();
-
-        jdbc.query(LIST_OF_COMMON_FILMS, Map.of("userId", userId, "friendId", friendId), filmRowMapper)
-            .forEach(film -> filmMap.put(film.getId(), film));
-        Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
-        Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
-        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_ALL_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
-
-        fillGenres(filmMap, genreMap);
-        fillDirectors(filmMap, directorMap);
-        fillLikes(filmMap);
-
-        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
-        return new ArrayList<>(filmMap.values());
-    }
-
-    @Override
-    public List<Film> getRecommendations(long userId) {
-        Map<Long, Film> filmMap = new HashMap<>();
-
-        jdbc.query(LIST_OF_RECOMMENDED_FILMS, Map.of("userId", userId), filmRowMapper)
-            .forEach(film -> filmMap.put(film.getId(), film));
-        Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
-        Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
-        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_ALL_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
-
-        fillGenres(filmMap, genreMap);
-        fillDirectors(filmMap, directorMap);
-        fillLikes(filmMap);
-
-        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
-
-        return new ArrayList<>(filmMap.values());
-    }
-
-    @Override
-    public List<Film> getTopPopularFilms(Long limit, Long genreId, Long year) {
-        MapSqlParameterSource params = new MapSqlParameterSource()
-            .addValue("genre_id", genreId)
-            .addValue("year", year)
-            .addValue("limit", limit);
-
-        Map<Long, Genre> genreMap = getEntitiesMap(FIND_ALL_GENRES_QUERY, genreRowMapper, Genre::getId);
-        Map<Long, Director> directorMap = getEntitiesMap(FIND_ALL_DIRECTORS_QUERY, directorRowMapper, Director::getId);
-        Map<Long, MpaRating> ratingMap = getEntitiesMap(FIND_ALL_RATINGS_QUERY, ratingRowMapper, MpaRating::getId);
-
-        Map<Long, Film> filmMap = getEntitiesMap(buildTopFilmsQuery(genreId, year), filmRowMapper, Film::getId,
-            params.getValues());
-
-        fillGenres(filmMap, genreMap);
-        fillDirectors(filmMap, directorMap);
-        fillLikes(filmMap);
-
-        filmMap.forEach((filmId, film) -> film.setMpa(ratingMap.get(film.getMpa().getId())));
-
-        return new ArrayList<>(filmMap.values());
     }
 
     String buildTopFilmsQuery(Long genreId, Long year) {

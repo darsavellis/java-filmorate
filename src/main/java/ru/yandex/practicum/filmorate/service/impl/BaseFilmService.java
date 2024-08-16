@@ -86,6 +86,7 @@ public class BaseFilmService implements FilmService {
         return result;
     }
 
+    @Override
     public Film deleteLike(long filmId, long userId) {
         Film result = editLike(filmId, userId, likeRepository::removeLike);
         likeRepository.eventLike(filmId, userId, OperationType.REMOVE);
@@ -148,7 +149,7 @@ public class BaseFilmService implements FilmService {
     }
 
     <T> Set<T> getValidatedEntities(Set<T> entitySet, Function<T, Long> idExtractor,
-                                            Function<List<Long>, Set<T>> convertIds, String errorMessage) {
+                                    Function<List<Long>, Set<T>> convertIds, String errorMessage) {
         List<Long> entityIds = entitySet.stream().map(idExtractor).toList();
         Set<T> entities = convertIds.apply(entityIds);
         if (entityIds.size() != entities.size()) {
