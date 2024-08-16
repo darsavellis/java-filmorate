@@ -19,6 +19,7 @@ public class BaseFriendService implements FriendService {
     static final String USER_ID_S_NOT_FOUND = "User ID=%s not found";
     final UserRepository userRepository;
 
+    @Override
     public User addFriend(long firstUserId, long secondUserId) throws NotFoundException {
         User firstUser = userRepository.findById(firstUserId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, firstUserId)));
@@ -30,6 +31,7 @@ public class BaseFriendService implements FriendService {
         return firstUser;
     }
 
+    @Override
     public User deleteFriend(long firstUserId, long secondUserId) throws NotFoundException {
         User firstUser = userRepository.findById(firstUserId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, firstUserId)));
@@ -41,6 +43,7 @@ public class BaseFriendService implements FriendService {
         return firstUser;
     }
 
+    @Override
     public Collection<User> getFriends(long userId) throws NotFoundException {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, userId)));
@@ -48,6 +51,7 @@ public class BaseFriendService implements FriendService {
         return userRepository.getFriends(user.getId());
     }
 
+    @Override
     public Collection<User> getCommonFriends(long firstUserId, long secondUserId) throws NotFoundException {
         return userRepository.getCommonFriends(firstUserId, secondUserId);
     }

@@ -34,8 +34,6 @@ public class BaseDirectorService implements DirectorService {
 
     @Override
     public Director updateDirector(Director newDirector) {
-
-
         directorRepository.getById(newDirector.getId())
             .orElseThrow(() -> new NotFoundException(String.format(DIRECTOR_ID_NOT_FOUND, newDirector.getId())));
 

@@ -166,7 +166,7 @@ public class JdbcUserRepository implements UserRepository {
         return jdbc.query(FIND_USER_EVENTS_QUERY, Map.of("user_id", userId), eventRowMapper);
     }
 
-    private static SqlParameterSource getSqlUserParameters(User user) {
+    static SqlParameterSource getSqlUserParameters(User user) {
         return new MapSqlParameterSource()
             .addValue("email", user.getEmail())
             .addValue("login", user.getLogin())

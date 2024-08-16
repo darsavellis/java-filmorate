@@ -21,9 +21,9 @@ public interface ReviewRepository {
 
     void setLikeReview(long reviewId, long userId, boolean isPositive);
 
-    boolean deleteLikeReview(long reviewId, long userId); // удаляет и лайки и дизлайки
+    void deleteLikeReview(long reviewId, long userId);
 
-    boolean deleteDislikeReview(long reviewId, long userId); // умеет удалять только дизлайки
+    void deleteDislikeReview(long reviewId, long userId);
 
     void eventReview(long userId, long reviewId, OperationType operationType);
 }

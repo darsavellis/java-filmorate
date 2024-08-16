@@ -81,19 +81,22 @@ public class BaseReviewService implements ReviewService {
     @Override
     public Review setLikeReview(long reviewId, long userId, boolean isPositive) {
         reviewRepository.setLikeReview(reviewId, userId, isPositive);
-        return reviewRepository.getReviewById(reviewId).get();
+        return reviewRepository.getReviewById(reviewId)
+            .orElseThrow(() -> new NotFoundException(String.format(REVIEW_ID_NOT_FOUND, reviewId)));
     }
 
     @Override
     public Review deleteLikeReview(long reviewId, long userId) {
         reviewRepository.deleteLikeReview(reviewId, userId);
-        return reviewRepository.getReviewById(reviewId).get();
+        return reviewRepository.getReviewById(reviewId)
+            .orElseThrow(() -> new NotFoundException(String.format(REVIEW_ID_NOT_FOUND, reviewId)));
     }
 
     @Override
     public Review deleteDislikeReview(long reviewId, long userId) {
         reviewRepository.deleteDislikeReview(reviewId, userId);
-        return reviewRepository.getReviewById(reviewId).get();
+        return reviewRepository.getReviewById(reviewId)
+            .orElseThrow(() -> new NotFoundException(String.format(REVIEW_ID_NOT_FOUND, reviewId)));
     }
 
     void deepValidateReview(Review review) {
