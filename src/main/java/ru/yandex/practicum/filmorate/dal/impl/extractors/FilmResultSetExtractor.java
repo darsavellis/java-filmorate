@@ -28,33 +28,28 @@ public class FilmResultSetExtractor implements ResultSetExtractor<List<Film>> {
                 film.setName(rs.getString("name"));
                 film.setDescription(rs.getString("description"));
                 film.setDuration(rs.getLong("duration"));
-                LocalDate release_date = rs.getTimestamp("release_date").toLocalDateTime().toLocalDate();
-                film.setReleaseDate(release_date);
+                LocalDate releaseDate = rs.getTimestamp("release_date").toLocalDateTime().toLocalDate();
+                film.setReleaseDate(releaseDate);
                 MpaRating mpaRating = new MpaRating();
                 mpaRating.setId(rs.getLong("rating_id"));
                 mpaRating.setName(rs.getString("rating_name"));
                 mpaRating.setDescription(rs.getString("rating_description"));
                 film.setMpa(mpaRating);
-
                 filmMap.put(rs.getLong("id"), film);
             }
 
-            try {
-                if (rs.getString("genre_name") != null) {
-                    Genre genre = new Genre();
-                    genre.setId(rs.getLong("genre_id"));
-                    genre.setName(rs.getString("genre_name"));
-                    film.getGenres().add(genre);
-                }
+            if (rs.getString("genre_name") != null) {
+                Genre genre = new Genre();
+                genre.setId(rs.getLong("genre_id"));
+                genre.setName(rs.getString("genre_name"));
+                film.getGenres().add(genre);
+            }
 
-                if (rs.getString("director_name") != null) {
-                    Director director = new Director();
-                    director.setId(rs.getLong("director_id"));
-                    director.setName(rs.getString("director_name"));
-                    film.getDirectors().add(director);
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+            if (rs.getString("director_name") != null) {
+                Director director = new Director();
+                director.setId(rs.getLong("director_id"));
+                director.setName(rs.getString("director_name"));
+                film.getDirectors().add(director);
             }
         }
         return new ArrayList<>(filmMap.values());

@@ -37,7 +37,7 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findById(long userId) {
+    public Optional<User> getById(long userId) {
         String findUserByIdQuery = "SELECT * FROM users WHERE id = :id";
 
         try {
@@ -92,7 +92,7 @@ public class JdbcUserRepository implements UserRepository {
         List<Long> friendIds = jdbc.queryForList(findUserFriendsQuery, Map.of("user_id", userId), Long.class);
         return friendIds
             .stream()
-            .map((friendId) -> findById(friendId)
+            .map((friendId) -> getById(friendId)
                 .orElseThrow(() -> new NotFoundException(String.format("User ID=%s not found", friendId))))
             .toList();
     }

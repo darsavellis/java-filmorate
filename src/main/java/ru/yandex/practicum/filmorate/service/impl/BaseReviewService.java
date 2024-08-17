@@ -100,7 +100,7 @@ public class BaseReviewService implements ReviewService {
     }
 
     void deepValidateReview(Review review) {
-        if (userRepository.findById(review.getUserId()).isEmpty()) {
+        if (userRepository.getById(review.getUserId()).isEmpty()) {
             throw new NotFoundException("The user specified in the review was not found");
         }
         if (filmRepository.getById(review.getFilmId()).isEmpty()) {

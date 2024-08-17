@@ -10,7 +10,7 @@ import java.util.Optional;
 public interface UserRepository {
     List<User> getAll();
 
-    Optional<User> findById(long userId);
+    Optional<User> getById(long userId);
 
     User save(User user);
 

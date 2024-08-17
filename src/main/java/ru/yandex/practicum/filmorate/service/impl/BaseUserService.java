@@ -32,7 +32,7 @@ public class BaseUserService implements UserService {
 
     @Override
     public User getUserById(long userId) {
-        return userRepository.findById(userId)
+        return userRepository.getById(userId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, userId)));
     }
 
@@ -55,7 +55,7 @@ public class BaseUserService implements UserService {
     @Override
     public User updateUser(User newUser) throws ValidationException {
         UserValidator.validate(newUser);
-        userRepository.findById(newUser.getId())
+        userRepository.getById(newUser.getId())
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, newUser.getId())));
 
         return userRepository.update(newUser);
@@ -64,7 +64,7 @@ public class BaseUserService implements UserService {
     @Override
     public User deleteUserById(long userId) throws ValidationException {
         UserValidator.validate(getUserById(userId));
-        User user = userRepository.findById(userId)
+        User user = userRepository.getById(userId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, userId)));
 
         userRepository.delete(userId);

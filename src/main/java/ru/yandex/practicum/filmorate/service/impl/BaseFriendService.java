@@ -21,9 +21,9 @@ public class BaseFriendService implements FriendService {
 
     @Override
     public User addFriend(long firstUserId, long secondUserId) throws NotFoundException {
-        User firstUser = userRepository.findById(firstUserId)
+        User firstUser = userRepository.getById(firstUserId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, firstUserId)));
-        User secondUser = userRepository.findById(secondUserId)
+        User secondUser = userRepository.getById(secondUserId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, secondUserId)));
 
         userRepository.addFriend(firstUser.getId(), secondUser.getId());
@@ -33,9 +33,9 @@ public class BaseFriendService implements FriendService {
 
     @Override
     public User deleteFriend(long firstUserId, long secondUserId) throws NotFoundException {
-        User firstUser = userRepository.findById(firstUserId)
+        User firstUser = userRepository.getById(firstUserId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, firstUserId)));
-        User secondUser = userRepository.findById(secondUserId)
+        User secondUser = userRepository.getById(secondUserId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, secondUserId)));
 
         userRepository.deleteFriend(firstUser.getId(), secondUser.getId());
@@ -45,7 +45,7 @@ public class BaseFriendService implements FriendService {
 
     @Override
     public List<User> getFriends(long userId) throws NotFoundException {
-        User user = userRepository.findById(userId)
+        User user = userRepository.getById(userId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, userId)));
 
         return userRepository.getFriends(user.getId());

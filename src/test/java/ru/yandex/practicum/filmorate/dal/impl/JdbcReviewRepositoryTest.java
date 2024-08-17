@@ -9,7 +9,9 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.FilmResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.*;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
 
 import java.util.List;
@@ -22,8 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @JdbcTest
 @AutoConfigureTestDatabase
 @Import({JdbcReviewRepository.class, JdbcUserRepository.class, JdbcFilmRepository.class, UserRowMapper.class,
-        FriendshipRowMapper.class, GenreRowMapper.class, FilmRowMapper.class, ReviewRowMapper.class, EventRowMapper.class,
-        DirectorRowMapper.class, MpaRatingRowMapper.class})
+    FriendshipRowMapper.class, GenreRowMapper.class, FilmRowMapper.class, ReviewRowMapper.class, EventRowMapper.class,
+    DirectorRowMapper.class, MpaRatingRowMapper.class, FilmResultSetExtractor.class})
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcReviewRepositoryTest {
@@ -34,15 +36,15 @@ class JdbcReviewRepositoryTest {
 
     @Test
     public void createUpdateDeleteReview() {
-        User user1 = userRepository.save(LibraryForCreatingEntities.getUser(1));
-        User user2 = userRepository.save(LibraryForCreatingEntities.getUser(2));
-        Film film1 = filmRepository.save(LibraryForCreatingEntities.getFilm(1));
-        Film film2 = filmRepository.save(LibraryForCreatingEntities.getFilm(2));
+        User user1 = userRepository.getById(1).orElseThrow(() -> new NotFoundException("User don't exits"));
+        User user2 = userRepository.getById(2).orElseThrow(() -> new NotFoundException("User don't exits"));
+        Film film1 = filmRepository.getById(1).orElseThrow(() -> new NotFoundException("Film don't exits"));
+        Film film2 = filmRepository.getById(2).orElseThrow(() -> new NotFoundException("Film don't exits"));
 
         Review review1 = reviewRepository.createReview(LibraryForCreatingEntities
-                .getReview(user1.getId(), film1.getId()));
+            .getReview(user1.getId(), film1.getId()));
         Review review2 = reviewRepository.createReview(LibraryForCreatingEntities
-                .getReview(user2.getId(), film2.getId()));
+            .getReview(user2.getId(), film2.getId()));
 
         assertNotNull(review1);
         assertNotNull(review2);
@@ -50,19 +52,19 @@ class JdbcReviewRepositoryTest {
         Optional<Review> receivedReview = reviewRepository.getReviewById(review1.getReviewId());
 
         assertThat(receivedReview)
-                .isPresent()
-                .hasValueSatisfying(review ->
-                        assertThat(review).hasFieldOrPropertyWithValue("content", review1.getContent()))
-                .hasValueSatisfying(review ->
-                        assertThat(review).hasFieldOrPropertyWithValue("userId", review1.getUserId()))
-                .hasValueSatisfying(review ->
-                        assertThat(review).hasFieldOrPropertyWithValue("filmId", review1.getFilmId()))
-                .hasValueSatisfying(review ->
-                        assertThat(review).hasFieldOrPropertyWithValue("isPositive", review1.getIsPositive()))
-                .hasValueSatisfying(review ->
-                        assertThat(review).hasFieldOrPropertyWithValue("reviewId", review1.getReviewId()))
-                .hasValueSatisfying(review ->
-                        assertThat(review).hasFieldOrPropertyWithValue("useful", review1.getUseful()));
+            .isPresent()
+            .hasValueSatisfying(review ->
+                assertThat(review).hasFieldOrPropertyWithValue("content", review1.getContent()))
+            .hasValueSatisfying(review ->
+                assertThat(review).hasFieldOrPropertyWithValue("userId", review1.getUserId()))
+            .hasValueSatisfying(review ->
+                assertThat(review).hasFieldOrPropertyWithValue("filmId", review1.getFilmId()))
+            .hasValueSatisfying(review ->
+                assertThat(review).hasFieldOrPropertyWithValue("isPositive", review1.getIsPositive()))
+            .hasValueSatisfying(review ->
+                assertThat(review).hasFieldOrPropertyWithValue("reviewId", review1.getReviewId()))
+            .hasValueSatisfying(review ->
+                assertThat(review).hasFieldOrPropertyWithValue("useful", review1.getUseful()));
 
         review1.setIsPositive(false);
         review1.setContent("Another content");
@@ -93,15 +95,15 @@ class JdbcReviewRepositoryTest {
 
     @Test
     public void testUsefulReview() {
-        User user1 = userRepository.save(LibraryForCreatingEntities.getUser(1));
-        User user2 = userRepository.save(LibraryForCreatingEntities.getUser(2));
-        Film film1 = filmRepository.save(LibraryForCreatingEntities.getFilm(1));
-        Film film2 = filmRepository.save(LibraryForCreatingEntities.getFilm(2));
+        User user1 = userRepository.getById(1).orElseThrow(() -> new NotFoundException("User don't exits"));
+        User user2 = userRepository.getById(2).orElseThrow(() -> new NotFoundException("User don't exits"));
+        Film film1 = filmRepository.getById(1).orElseThrow(() -> new NotFoundException("Film don't exits"));
+        Film film2 = filmRepository.getById(2).orElseThrow(() -> new NotFoundException("Film don't exits"));
 
         Review review1 = reviewRepository.createReview(LibraryForCreatingEntities
-                .getReview(user1.getId(), film1.getId()));
+            .getReview(user1.getId(), film1.getId()));
         Review review2 = reviewRepository.createReview(LibraryForCreatingEntities
-                .getReview(user2.getId(), film2.getId()));
+            .getReview(user2.getId(), film2.getId()));
 
         assertNotNull(review1);
         assertNotNull(review2);
@@ -133,18 +135,17 @@ class JdbcReviewRepositoryTest {
 
     @Test
     public void eventReview() {
-        User user1 = userRepository.save(LibraryForCreatingEntities.getUser(1));
-        User user2 = userRepository.save(LibraryForCreatingEntities.getUser(2));
-        Film film1 = filmRepository.save(LibraryForCreatingEntities.getFilm(1));
-        Film film2 = filmRepository.save(LibraryForCreatingEntities.getFilm(2));
+        User user1 = userRepository.getById(1).orElseThrow(() -> new NotFoundException("User don't exits"));
+        User user2 = userRepository.getById(2).orElseThrow(() -> new NotFoundException("User don't exits"));
+        Film film1 = filmRepository.getById(1).orElseThrow(() -> new NotFoundException("Film don't exits"));
+        Film film2 = filmRepository.getById(2).orElseThrow(() -> new NotFoundException("Film don't exits"));
 
         Review review1 = reviewRepository.createReview(LibraryForCreatingEntities
-                .getReview(user1.getId(), film1.getId()));
+            .getReview(user1.getId(), film1.getId()));
         assertNotNull(review1);
         Review review2 = reviewRepository.createReview(LibraryForCreatingEntities
-                .getReview(user2.getId(), film2.getId()));
+            .getReview(user2.getId(), film2.getId()));
         assertNotNull(review2);
-
 
         reviewRepository.eventReview(user1.getId(), review1.getReviewId(), OperationType.ADD);
         reviewRepository.eventReview(user1.getId(), review1.getReviewId(), OperationType.UPDATE);

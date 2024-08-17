@@ -21,16 +21,6 @@ MERGE INTO PUBLIC.FRIEND_STATUSES
 VALUES  (1, 'PENDING'),
         (2, 'ACCEPTED');
 
-MERGE INTO PUBLIC.FILMS
-(ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID)
-VALUES  (1, 'Интерстеллар', 'Описание интерстеллара', '2014-11-06', '169', 3),
-        (2, '1 + 1', 'Описание 1 + 1', '2011-09-23', '112', 4);
-
-MERGE INTO PUBLIC.USERS
-(ID, EMAIL, LOGIN, NAME, SURNAME, BIRTHDAY)
-VALUES  (1, 'aleksandrov@email.com', 'aleksandrov', 'Александр', 'Иванов', '1995-05-17'),
-        (2, 'ivanov@email.com', 'ivanov', 'Иван', 'Александров', '1991-04-15');
-
 MERGE INTO PUBLIC.EVENT_TYPES (ID, NAME)
 VALUES
               (1, 'LIKE'),
@@ -41,6 +31,16 @@ VALUES
               (1, 'REMOVE'),
 			  (2, 'ADD'),
 			  (3, 'UPDATE');
+
+MERGE INTO PUBLIC.FILMS
+(ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID)
+VALUES  (1, 'Интерстеллар', 'Описание интерстеллара', '2014-11-06', '169', 3),
+        (2, '1 + 1', 'Описание 1 + 1', '2011-09-23', '112', 4);
+
+MERGE INTO PUBLIC.USERS
+(ID, EMAIL, LOGIN, NAME, SURNAME, BIRTHDAY)
+VALUES  (1, 'aleksandrov@email.com', 'aleksandrov', 'Александр', 'Иванов', '1995-05-17'),
+        (2, 'ivanov@email.com', 'ivanov', 'Иван', 'Александров', '1991-04-15');
 
 ALTER TABLE USERS ALTER COLUMN ID RESTART WITH (SELECT MAX(ID) + 1 FROM USERS);
 ALTER TABLE FILMS ALTER COLUMN ID RESTART WITH (SELECT MAX(ID) + 1 FROM FILMS);

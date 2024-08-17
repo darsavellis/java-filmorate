@@ -106,8 +106,8 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public List<Film> getCommonFilms(long userId, long friendId) {
-        userRepository.findById(userId);
-        userRepository.findById(friendId);
+        userRepository.getById(userId);
+        userRepository.getById(friendId);
         return filmRepository.getCommonFilms(userId, friendId);
     }
 
@@ -120,7 +120,7 @@ public class BaseFilmService implements FilmService {
 
     @Override
     public List<Film> getRecommendations(long userId) {
-        userRepository.findById(userId);
+        userRepository.getById(userId);
         return filmRepository.getRecommendations(userId);
     }
 
@@ -156,7 +156,7 @@ public class BaseFilmService implements FilmService {
     Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
         Film film = filmRepository.getById(filmId)
             .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
-        userRepository.findById(userId)
+        userRepository.getById(userId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, userId)));
         action.accept(filmId, userId);
         return film;
