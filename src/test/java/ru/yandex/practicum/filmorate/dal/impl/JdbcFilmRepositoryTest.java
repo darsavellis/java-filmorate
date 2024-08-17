@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.repository;
+package ru.yandex.practicum.filmorate.dal.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.DisplayName;
@@ -6,9 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.dal.impl.JdbcFilmRepository;
 import ru.yandex.practicum.filmorate.dal.impl.extractors.FilmResultSetExtractor;
-import ru.yandex.practicum.filmorate.dal.impl.mappers.*;
+import ru.yandex.practicum.filmorate.dal.impl.mappers.DirectorRowMapper;
+import ru.yandex.practicum.filmorate.dal.impl.mappers.FilmRowMapper;
+import ru.yandex.practicum.filmorate.dal.impl.mappers.GenreRowMapper;
+import ru.yandex.practicum.filmorate.dal.impl.mappers.MpaRatingRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 
@@ -23,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @JdbcTest
 @Import({JdbcFilmRepository.class, FilmRowMapper.class, GenreRowMapper.class,
-    MpaRatingRowMapper.class, DirectorRowMapper.class, FilmResultSetExtractor.class})
+        MpaRatingRowMapper.class, DirectorRowMapper.class, FilmResultSetExtractor.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class JdbcFilmRepositoryTest {
     private final JdbcFilmRepository filmRepository;
@@ -41,14 +43,14 @@ public class JdbcFilmRepositoryTest {
         mpaRating.setId(3);
         newFilm.setMpa(mpaRating);
 
-        Optional<Film> filmFromRepository =  Optional.ofNullable(filmRepository.save(newFilm));
+        Optional<Film> filmFromRepository = Optional.ofNullable(filmRepository.save(newFilm));
         assertNotNull(filmFromRepository);
 
         assertThat(filmFromRepository)
                 .isPresent()
                 .hasValueSatisfying(film -> {
-            assertThat(film).usingRecursiveComparison().isEqualTo(newFilm);
-        });
+                    assertThat(film).usingRecursiveComparison().isEqualTo(newFilm);
+                });
 
         filmFromRepository = filmRepository.getById(newFilm.getId());
 
@@ -114,10 +116,10 @@ public class JdbcFilmRepositoryTest {
         Optional<Film> savedFilmById = filmRepository.getById(newFilm.getId());
 
         assertThat(savedFilmById)
-            .isPresent()
-            .hasValueSatisfying(film -> {
-                assertThat(film).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(newFilm);
-            });
+                .isPresent()
+                .hasValueSatisfying(film -> {
+                    assertThat(film).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(newFilm);
+                });
     }
 
     @Test
@@ -134,9 +136,9 @@ public class JdbcFilmRepositoryTest {
 
             repositoryFilm.ifPresent(film -> {
                 assertThat(film)
-                    .usingRecursiveComparison()
-                    .ignoringExpectedNullFields()
-                    .isEqualTo(locaFilm);
+                        .usingRecursiveComparison()
+                        .ignoringExpectedNullFields()
+                        .isEqualTo(locaFilm);
             });
         }
     }
