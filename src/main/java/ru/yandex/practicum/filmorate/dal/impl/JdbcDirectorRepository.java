@@ -12,7 +12,10 @@ import ru.yandex.practicum.filmorate.dal.DirectorRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -49,11 +52,9 @@ public class JdbcDirectorRepository implements DirectorRepository {
     }
 
     @Override
-    public Set<Director> getByIds(List<Long> directorIds) {
-        return new HashSet<>(
-            jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("directors", directorIds),
-                directorRowMapper)
-        );
+    public List<Director> getByIds(List<Long> directorIds) {
+        return jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("directors", directorIds),
+            directorRowMapper);
     }
 
     @Override
@@ -89,7 +90,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
     }
 
     @Override
-    public Set<Director> getDirectorsByFilmId(long filmId) {
-        return new HashSet<>(jdbc.query(FIND_DIRECTORS_BY_FILM_ID, Map.of("film_id", filmId), directorRowMapper));
+    public List<Director> getDirectorsByFilmId(long filmId) {
+        return jdbc.query(FIND_DIRECTORS_BY_FILM_ID, Map.of("film_id", filmId), directorRowMapper);
     }
 }

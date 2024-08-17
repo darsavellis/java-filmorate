@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -24,51 +23,37 @@ public class UserController {
     final BaseFilmService filmService;
 
     @GetMapping
-    public ResponseEntity<Collection<User>> getUsers() {
-        return ResponseEntity
-            .status(200)
-            .body(userService.getUsers());
+    public Collection<User> getUsers() {
+        return userService.getUsers();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable long id) {
-        return ResponseEntity
-            .status(200)
-            .body(userService.getUserById(id));
+    public User getUserById(@PathVariable long id) {
+        return userService.getUserById(id);
     }
 
     @GetMapping("/{id}/feed")
-    public ResponseEntity<Collection<Event>> getEventsList(@PathVariable Long id) {
-        return ResponseEntity
-            .status(200)
-            .body(userService.getEventsOfUser(id));
+    public Collection<Event> getEventsList(@PathVariable Long id) {
+        return userService.getEventsOfUser(id);
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        return ResponseEntity
-            .status(201)
-            .body(userService.createUser(user));
+    public User createUser(@Valid @RequestBody User user) {
+        return userService.createUser(user);
     }
 
     @PutMapping
-    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
-        return ResponseEntity
-            .status(200)
-            .body(userService.updateUser(user));
+    public User updateUser(@Valid @RequestBody User user) {
+        return userService.updateUser(user);
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<User> deleteUser(@PathVariable long userId) {
-        return ResponseEntity
-            .status(200)
-            .body(userService.deleteUserById(userId));
+    public User deleteUser(@PathVariable long userId) {
+        return userService.deleteUserById(userId);
     }
 
     @GetMapping("{id}/recommendations")
-    public ResponseEntity<List<Film>> getRecommendations(@PathVariable("id") long userId) {
-        return ResponseEntity
-            .status(200)
-            .body(filmService.getRecommendations(userId));
+    public List<Film> getRecommendations(@PathVariable("id") long userId) {
+        return filmService.getRecommendations(userId);
     }
 }

@@ -11,9 +11,7 @@ import ru.yandex.practicum.filmorate.model.OperationType;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,11 +24,6 @@ public class JdbcLikeRepository implements LikeRepository {
         "SELECT :user_id, :entity_id, :timestamp, t.id , o.id FROM event_types t, operation_types o " +
         "WHERE t.name = :event_type AND o.name = :operation_type";
     final NamedParameterJdbcOperations jdbc;
-
-    @Override
-    public Set<Long> getLikesByFilmId(long filmId) {
-        return new HashSet<>(jdbc.queryForList(FIND_ALL_LIKES_QUERY, Map.of("film_id", filmId), Long.class));
-    }
 
     @Override
     public void addLike(long filmId, long userId) {

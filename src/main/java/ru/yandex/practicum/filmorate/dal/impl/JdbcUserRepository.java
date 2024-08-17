@@ -19,7 +19,6 @@ import ru.yandex.practicum.filmorate.model.*;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -96,15 +95,13 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     @Override
-    public Set<User> getFriends(long userId) {
+    public List<User> getFriends(long userId) {
         List<Long> friendIds = jdbc.queryForList(FIND_USER_FRIENDS_QUERY, Map.of("user_id", userId), Long.class);
         return friendIds
             .stream()
             .map((friendId) -> findById(friendId)
                 .orElseThrow(() -> new NotFoundException(String.format("User ID=%s not found", friendId))))
-            .collect(Collectors.toSet());
-
-
+            .toList();
     }
 
     @Override
@@ -155,10 +152,10 @@ public class JdbcUserRepository implements UserRepository {
     }
 
     @Override
-    public Set<User> getCommonFriends(long firstUserId, long secondUserId) {
+    public List<User> getCommonFriends(long firstUserId, long secondUserId) {
         Set<User> commonFriends = new HashSet<>(getFriends(firstUserId));
         commonFriends.retainAll(getFriends(secondUserId));
-        return commonFriends;
+        return new ArrayList<>(commonFriends);
     }
 
     @Override

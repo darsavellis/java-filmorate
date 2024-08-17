@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -33,9 +34,8 @@ public class BaseReviewService implements ReviewService {
 
     @Override
     public List<Review> getReviewsByFilmId(Long filmId, long count) {
-        Optional<Long> optionalFilmId = Optional.ofNullable(filmId);
-        if (optionalFilmId.isPresent()) {
-            return reviewRepository.getReviewsByFilmId(optionalFilmId.get(), count);
+        if (Objects.nonNull(filmId)) {
+            return reviewRepository.getReviewsByFilmId(filmId, count);
         } else {
             return reviewRepository.getAllReviews(count);
         }

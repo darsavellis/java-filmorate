@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.MpaRating;
 import ru.yandex.practicum.filmorate.service.MpaRatingService;
 
-import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +19,7 @@ public class BaseMpaRatingService implements MpaRatingService {
     final MpaRatingRepository mpaRatingRepository;
 
     @Override
-    public Collection<MpaRating> getMpaRatings() {
+    public List<MpaRating> getMpaRatings() {
         return mpaRatingRepository.getMpaRatings();
     }
 

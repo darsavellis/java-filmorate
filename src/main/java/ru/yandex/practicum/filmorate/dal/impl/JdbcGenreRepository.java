@@ -11,7 +11,9 @@ import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -45,15 +47,14 @@ public class JdbcGenreRepository implements GenreRepository {
     }
 
     @Override
-    public Set<Genre> getGenresByFilmId(long filmId) {
-        return new HashSet<>(jdbc.query(FIND_GENRES_BY_FILM_ID_QUERY, Map.of("film_id", filmId), genreRowMapper));
+    public List<Genre> getGenresByFilmId(long filmId) {
+        return jdbc.query(FIND_GENRES_BY_FILM_ID_QUERY, Map.of("film_id", filmId), genreRowMapper);
     }
 
 
     @Override
-    public Set<Genre> getByIds(List<Long> genreIds) {
-        return new HashSet<>(
-            jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("genres", genreIds), genreRowMapper)
-        );
+    public List<Genre> getByIds(List<Long> genreIds) {
+        return jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("genres", genreIds), genreRowMapper);
+
     }
 }
