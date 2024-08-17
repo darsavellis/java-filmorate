@@ -10,7 +10,7 @@ import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FriendService;
 
-import java.util.Collection;
+import java.util.List;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -44,7 +44,7 @@ public class BaseFriendService implements FriendService {
     }
 
     @Override
-    public Collection<User> getFriends(long userId) throws NotFoundException {
+    public List<User> getFriends(long userId) throws NotFoundException {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new NotFoundException(String.format(USER_ID_S_NOT_FOUND, userId)));
 
@@ -52,7 +52,7 @@ public class BaseFriendService implements FriendService {
     }
 
     @Override
-    public Collection<User> getCommonFriends(long firstUserId, long secondUserId) throws NotFoundException {
+    public List<User> getCommonFriends(long firstUserId, long secondUserId) throws NotFoundException {
         return userRepository.getCommonFriends(firstUserId, secondUserId);
     }
 }

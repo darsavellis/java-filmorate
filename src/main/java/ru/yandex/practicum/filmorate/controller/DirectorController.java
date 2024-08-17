@@ -4,12 +4,12 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.DirectorService;
 
-import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,42 +19,28 @@ public class DirectorController {
     final DirectorService directorService;
 
     @GetMapping
-    @ResponseBody
-    public ResponseEntity<Collection<Director>> getDirectors() {
-        return ResponseEntity
-            .status(200)
-            .body(directorService.getDirectors());
+    public List<Director> getDirectors() {
+        return directorService.getDirectors();
     }
 
-    @GetMapping("/{director-id}")
-    @ResponseBody
-    public ResponseEntity<Director> getDirectorById(@PathVariable("director-id") long directorId) {
-        return ResponseEntity
-            .status(200)
-            .body(directorService.getDirectorById(directorId));
+    @GetMapping("/{directorId}")
+    public Director getDirectorById(@PathVariable long directorId) {
+        return directorService.getDirectorById(directorId);
     }
 
     @PostMapping
-    @ResponseBody
-    public ResponseEntity<Director> createDirector(@Valid @RequestBody Director director) {
-        return ResponseEntity
-            .status(201)
-            .body(directorService.createDirector(director));
+    @ResponseStatus(HttpStatus.CREATED)
+    public Director createDirector(@Valid @RequestBody Director director) {
+        return directorService.createDirector(director);
     }
 
     @PutMapping
-    @ResponseBody
-    public ResponseEntity<Director> updateDirector(@Valid @RequestBody Director director) {
-        return ResponseEntity
-            .status(200)
-            .body(directorService.updateDirector(director));
+    public Director updateDirector(@Valid @RequestBody Director director) {
+        return directorService.updateDirector(director);
     }
 
-    @DeleteMapping("/{director-id}")
-    @ResponseBody
-    public ResponseEntity<Director> deleteDirector(@PathVariable("director-id") long directorId) {
-        return ResponseEntity
-            .status(200)
-            .body(directorService.deleteDirector(directorId));
+    @DeleteMapping("/{directorId}")
+    public Director deleteDirector(@PathVariable long directorId) {
+        return directorService.deleteDirector(directorId);
     }
 }

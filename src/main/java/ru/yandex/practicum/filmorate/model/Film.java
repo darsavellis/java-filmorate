@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Data
@@ -27,7 +28,6 @@ public class Film {
     @Positive(message = "Длительность фильма должно быть положительным числом")
     long duration;
     MpaRating mpa = new MpaRating();
-    Set<Genre> genres = new HashSet<>();
-    Set<Long> likes = new HashSet<>();
+    Set<Genre> genres = new LinkedHashSet<>();
     Set<Director> directors = new HashSet<>();
 }

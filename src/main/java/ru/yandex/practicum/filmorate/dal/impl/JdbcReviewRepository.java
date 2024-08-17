@@ -24,42 +24,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcReviewRepository implements ReviewRepository {
-    static final String FIND_REVIEW_QUERY = "SELECT * FROM reviews WHERE id = :review_id";
-    static final String FIND_ALL_REVIEWS_QUERY = "SELECT * FROM reviews LIMIT :count";
-    static final String FIND_FILM_REVIEWS_QUERY = "SELECT * FROM reviews WHERE film_id = :film_id LIMIT :count";
-    static final String COUNT_REVIEW_SCORE = "SELECT SUM((is_like - 1 + is_like % 2)) FROM review_user " +
-        "WHERE review_id = :review_id";
-    static final String COUNT_FILMS_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
-        "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id WHERE r.film_id = :film_id GROUP BY r.id";
-    static final String COUNT_ALL_REVIEWS_SCORES = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
-        "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id GROUP BY r.id";
-    static final String REVIEW_INSERT_QUERY = "INSERT INTO reviews (content, is_positive, user_id, film_id, timestamp) " +
-        "VALUES (:content, :is_positive, :user_id, :film_id, :timestamp)";
-    static final String REVIEW_UPDATE_QUERY = "UPDATE reviews SET content = :content, " +
-        "is_positive = :is_positive, timestamp = :timestamp WHERE id = :id";
-    static final String REVIEW_DELETE_QUERY = "DELETE FROM reviews WHERE id = :id";
-    static final String ADD_LIKE_QUERY = "MERGE INTO review_user (review_id, user_id, is_like) " +
-        "VALUES (:review_id, :user_id, :is_like)";
-    static final String REMOVE_ANY_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
-        "user_id = :user_id";
-    static final String REMOVE_CERTAIN_LIKE_QUERY = "DELETE FROM review_user WHERE review_id = :review_id AND " +
-        "user_id = :user_id AND is_like = :is_like";
-    static final String INSERT_EVENT_QUERY = "INSERT INTO events (user_id, entity_id, timestamp, type_id, operation_id) " +
-        "SELECT :user_id, :entity_id, :timestamp, t.id , o.id FROM event_types t, operation_types o " +
-        "WHERE t.name = :event_type AND o.name = :operation_type";
-
     final NamedParameterJdbcOperations jdbc;
     final ReviewRowMapper reviewRowMapper;
 
     @Override
     public Optional<Review> getReviewById(long reviewId) {
+        final String findReviewQuery = "SELECT * FROM reviews WHERE id = :review_id";
+        final String countReviewScore = "SELECT SUM((is_like - 1 + is_like % 2)) FROM review_user " +
+            "WHERE review_id = :review_id";
+
         try {
             Optional<Review> review = Optional.ofNullable(jdbc.queryForObject(
-                FIND_REVIEW_QUERY,
+                findReviewQuery,
                 Map.of("review_id", reviewId),
                 reviewRowMapper
             ));
-            Long score = jdbc.queryForObject(COUNT_REVIEW_SCORE, Map.of("review_id", reviewId), Long.class);
+            Long score = jdbc.queryForObject(countReviewScore, Map.of("review_id", reviewId), Long.class);
 
             if (Objects.nonNull(score) && review.isPresent()) {
                 review.get().setUseful(score);
@@ -72,15 +52,20 @@ public class JdbcReviewRepository implements ReviewRepository {
 
     @Override
     public List<Review> getReviewsByFilmId(long filmId, long count) {
+        final String findFilmReviewsQuery = "SELECT * FROM reviews WHERE film_id = :film_id LIMIT :count";
+        final String countFilmsReviewsScores = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
+            "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id " +
+            "WHERE r.film_id = :film_id GROUP BY r.id";
+
         Map<Long, Long> scoreMap = new HashMap<>(); // мап пост id - рейтинг
         Map<Long, Review> reviewMap = new HashMap<>();
 
-        jdbc.query(COUNT_FILMS_REVIEWS_SCORES, Map.of("film_id", filmId), (resultSet) -> {
+        jdbc.query(countFilmsReviewsScores, Map.of("film_id", filmId), (resultSet) -> {
             Long id = resultSet.getLong("id");
             Long score = resultSet.getLong("useful");
             scoreMap.put(id, score);
         });
-        jdbc.query(FIND_FILM_REVIEWS_QUERY, Map.of("film_id", filmId, "count", count), reviewRowMapper)
+        jdbc.query(findFilmReviewsQuery, Map.of("film_id", filmId, "count", count), reviewRowMapper)
             .forEach((review) -> {
                 review.setUseful(scoreMap.get(review.getReviewId()));
                 reviewMap.put(review.getReviewId(), review);
@@ -92,14 +77,18 @@ public class JdbcReviewRepository implements ReviewRepository {
 
     @Override
     public List<Review> getAllReviews(long count) {
+        final String findAllReviewsQuery = "SELECT * FROM reviews LIMIT :count";
+        final String countAllReviewsScores = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
+            "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id GROUP BY r.id";
+
         Map<Long, Long> scoreMap = new HashMap<>();
         Map<Long, Review> reviewMap = new HashMap<>();
 
-        jdbc.query(COUNT_ALL_REVIEWS_SCORES, (resultSet) -> {
+        jdbc.query(countAllReviewsScores, (resultSet) -> {
             scoreMap.put(resultSet.getLong("id"),
                 resultSet.getLong("useful"));
         });
-        jdbc.query(FIND_ALL_REVIEWS_QUERY, Map.of("count", count), reviewRowMapper).forEach((review) -> {
+        jdbc.query(findAllReviewsQuery, Map.of("count", count), reviewRowMapper).forEach((review) -> {
             review.setUseful(scoreMap.get(review.getReviewId()));
             reviewMap.put(review.getReviewId(), review);
         });
@@ -110,6 +99,9 @@ public class JdbcReviewRepository implements ReviewRepository {
 
     @Override
     public Review createReview(Review review) {
+        final String reviewInsertQuery = "INSERT INTO reviews (content, is_positive, user_id, film_id, timestamp) " +
+            "VALUES (:content, :is_positive, :user_id, :film_id, :timestamp)";
+
         GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
         Timestamp timestamp = Timestamp.from(Instant.now());
         SqlParameterSource parameters = new MapSqlParameterSource()
@@ -119,7 +111,7 @@ public class JdbcReviewRepository implements ReviewRepository {
             .addValue("is_positive", review.getIsPositive())
             .addValue("timestamp", timestamp);
 
-        jdbc.update(REVIEW_INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
+        jdbc.update(reviewInsertQuery, parameters, generatedKeyHolder, new String[]{"id"});
 
         Long id = generatedKeyHolder.getKeyAs(Long.class);
 
@@ -132,6 +124,9 @@ public class JdbcReviewRepository implements ReviewRepository {
 
     @Override
     public Review updateReview(Review review) {
+        final String reviewUpdateQuery = "UPDATE reviews SET content = :content, " +
+            "is_positive = :is_positive, timestamp = :timestamp WHERE id = :id";
+
         GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
         Timestamp timestamp = Timestamp.from(Instant.now());
         SqlParameterSource parameters = new MapSqlParameterSource()
@@ -139,37 +134,51 @@ public class JdbcReviewRepository implements ReviewRepository {
             .addValue("content", review.getContent())
             .addValue("is_positive", review.getIsPositive())
             .addValue("timestamp", timestamp);
-        jdbc.update(REVIEW_UPDATE_QUERY, parameters);
+        jdbc.update(reviewUpdateQuery, parameters);
         return review;
     }
 
     @Override
     public boolean deleteReview(long reviewId) {
-        int rows = jdbc.update(REVIEW_DELETE_QUERY, Map.of("id", reviewId));
+        final String reviewDeleteQuery = "DELETE FROM reviews WHERE id = :id";
+
+        int rows = jdbc.update(reviewDeleteQuery, Map.of("id", reviewId));
         return rows > 0;
     }
 
     @Override
     public void setLikeReview(long reviewId, long userId, boolean isPositive) {
-        jdbc.update(ADD_LIKE_QUERY, Map.of("review_id", reviewId, "user_id", userId, "is_like", isPositive));
+        final String addLikeQuery = "MERGE INTO review_user (review_id, user_id, is_like) " +
+            "VALUES (:review_id, :user_id, :is_like)";
+
+        jdbc.update(addLikeQuery, Map.of("review_id", reviewId, "user_id", userId, "is_like", isPositive));
     }
 
     @Override
     public void deleteLikeReview(long reviewId, long userId) {
-        // REMOVE_ANY_LIKE_QUERY
-        int rows = jdbc.update(REMOVE_ANY_LIKE_QUERY, Map.of("review_id", reviewId, "user_id", userId));
+        final String removeAnyLikeQuery = "DELETE FROM review_user WHERE review_id = :review_id AND " +
+            "user_id = :user_id";
+
+        int rows = jdbc.update(removeAnyLikeQuery, Map.of("review_id", reviewId, "user_id", userId));
     }
 
     @Override
     public void deleteDislikeReview(long reviewId, long userId) {
-        int rows = jdbc.update(REMOVE_CERTAIN_LIKE_QUERY, Map.of("review_id", reviewId, "user_id", userId,
+        final String removeCertainLikeQuery = "DELETE FROM review_user WHERE review_id = :review_id AND " +
+            "user_id = :user_id AND is_like = :is_like";
+
+        int rows = jdbc.update(removeCertainLikeQuery, Map.of("review_id", reviewId, "user_id", userId,
             "is_like", false));
     }
 
     @Override
     public void eventReview(long userId, long reviewId, OperationType operationType) {
+        final String insertEventQuery = "INSERT INTO events (user_id, entity_id, timestamp, type_id, operation_id) " +
+            "SELECT :user_id, :entity_id, :timestamp, t.id , o.id FROM event_types t, operation_types o " +
+            "WHERE t.name = :event_type AND o.name = :operation_type";
+
         Timestamp timestamp = Timestamp.from(Instant.now());
-        jdbc.update(INSERT_EVENT_QUERY, Map.of("user_id", userId, "entity_id", reviewId,
+        jdbc.update(insertEventQuery, Map.of("user_id", userId, "entity_id", reviewId,
             "timestamp", timestamp, "event_type", EventType.REVIEW.toString(),
             "operation_type", operationType.toString()));
     }

@@ -12,36 +12,31 @@ import ru.yandex.practicum.filmorate.dal.DirectorRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcDirectorRepository implements DirectorRepository {
-    static final String FIND_ALL_DIRECTORS = "SELECT * FROM directors";
-    static final String FIND_BY_ID_QUERY = "SELECT * FROM directors WHERE id = :id";
-    static final String INSERT_QUERY = "INSERT INTO directors (name) VALUES (:name)";
-    static final String UPDATE_QUERY = "UPDATE directors SET name = :name";
-    static final String DELETE_QUERY = "DELETE FROM directors WHERE id = :id";
-    static final String FIND_BY_IDS_QUERY = "SELECT * FROM directors WHERE id IN (:directors)";
-    static final String FIND_DIRECTORS_BY_FILM_ID = """
-        SELECT d.* FROM film_director f
-        JOIN directors d ON d.id = f.director_id
-        WHERE f.film_id = :film_id
-        """;
-
     final NamedParameterJdbcOperations jdbc;
     final DirectorRowMapper directorRowMapper;
 
     @Override
     public List<Director> getAll() {
-        return jdbc.query(FIND_ALL_DIRECTORS, directorRowMapper);
+        final String findAllDirectors = "SELECT * FROM directors";
+
+        return jdbc.query(findAllDirectors, directorRowMapper);
     }
 
     @Override
     public Optional<Director> getById(long directorId) {
+        final String findByIdQuery = "SELECT * FROM directors WHERE id = :id";
+
         try {
-            Director director = jdbc.queryForObject(FIND_BY_ID_QUERY, Map.of("id", directorId), directorRowMapper);
+            Director director = jdbc.queryForObject(findByIdQuery, Map.of("id", directorId), directorRowMapper);
             return Optional.ofNullable(director);
         } catch (Exception ignored) {
             return Optional.empty();
@@ -49,20 +44,22 @@ public class JdbcDirectorRepository implements DirectorRepository {
     }
 
     @Override
-    public Set<Director> getByIds(List<Long> directorIds) {
-        return new HashSet<>(
-            jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("directors", directorIds),
-                directorRowMapper)
-        );
+    public List<Director> getByIds(List<Long> directorIds) {
+        final String findByIdsQuery = "SELECT * FROM directors WHERE id IN (:directors)";
+
+        return jdbc.query(findByIdsQuery, new MapSqlParameterSource("directors", directorIds),
+            directorRowMapper);
     }
 
     @Override
     public Director save(Director director) {
+        final String insertQuery = "INSERT INTO directors (name) VALUES (:name)";
+
         GeneratedKeyHolder generatedKeyHolder = new GeneratedKeyHolder();
         SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("name", director.getName());
 
-        jdbc.update(INSERT_QUERY, parameters, generatedKeyHolder, new String[]{"id"});
+        jdbc.update(insertQuery, parameters, generatedKeyHolder, new String[]{"id"});
         Long id = generatedKeyHolder.getKeyAs(Long.class);
 
         if (Objects.nonNull(id)) {
@@ -74,22 +71,32 @@ public class JdbcDirectorRepository implements DirectorRepository {
 
     @Override
     public Director update(Director newDirector) {
+        final String updateQuery = "UPDATE directors SET name = :name";
+
         SqlParameterSource parameters = new MapSqlParameterSource()
             .addValue("id", newDirector.getId())
             .addValue("name", newDirector.getName());
 
-        jdbc.update(UPDATE_QUERY, parameters);
+        jdbc.update(updateQuery, parameters);
         return newDirector;
     }
 
     @Override
     public boolean delete(long directorId) {
-        int rows = jdbc.update(DELETE_QUERY, Map.of("id", directorId));
+        final String deleteQuery = "DELETE FROM directors WHERE id = :id";
+
+        int rows = jdbc.update(deleteQuery, Map.of("id", directorId));
         return rows > 0;
     }
 
     @Override
-    public Set<Director> getDirectorsByFilmId(long filmId) {
-        return new HashSet<>(jdbc.query(FIND_DIRECTORS_BY_FILM_ID, Map.of("film_id", filmId), directorRowMapper));
+    public List<Director> getDirectorsByFilmId(long filmId) {
+        final String findDirectorsByFilmId = """
+            SELECT d.* FROM film_director f
+            JOIN directors d ON d.id = f.director_id
+            WHERE f.film_id = :film_id
+            """;
+
+        return jdbc.query(findDirectorsByFilmId, Map.of("film_id", filmId), directorRowMapper);
     }
 }

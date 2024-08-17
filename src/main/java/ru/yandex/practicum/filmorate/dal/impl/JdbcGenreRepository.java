@@ -11,33 +11,31 @@ import ru.yandex.practicum.filmorate.dal.GenreRepository;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcGenreRepository implements GenreRepository {
-    static final String FIND_ALL_QUERY = "SELECT * FROM genres";
-    static final String FIND_BY_ID_QUERY = "SELECT * FROM genres WHERE id = :id";
-    static final String FIND_BY_IDS_QUERY = "SELECT * FROM genres WHERE id IN (:genres)";
-    static final String FIND_GENRES_BY_FILM_ID_QUERY = """
-        SELECT g.* FROM film_genre AS f
-        JOIN genres g ON g.id = f.genre_id WHERE f.film_id = :film_id
-        """;
-
     final NamedParameterJdbcOperations jdbc;
     final GenreRowMapper genreRowMapper;
 
     @Override
     public List<Genre> getGenres() {
-        return jdbc.query(FIND_ALL_QUERY, genreRowMapper);
+        final String findAllQuery = "SELECT * FROM genres";
+
+        return jdbc.query(findAllQuery, genreRowMapper);
     }
 
     @Override
     public Optional<Genre> getGenreById(long genreId) {
+        final String findByIdQuery = "SELECT * FROM genres WHERE id = :id";
+
         try {
             return Optional.ofNullable(
-                jdbc.queryForObject(FIND_BY_ID_QUERY, new MapSqlParameterSource("id", genreId), genreRowMapper)
+                jdbc.queryForObject(findByIdQuery, new MapSqlParameterSource("id", genreId), genreRowMapper)
             );
         } catch (EmptyResultDataAccessException ignored) {
             return Optional.empty();
@@ -45,15 +43,21 @@ public class JdbcGenreRepository implements GenreRepository {
     }
 
     @Override
-    public Set<Genre> getGenresByFilmId(long filmId) {
-        return new HashSet<>(jdbc.query(FIND_GENRES_BY_FILM_ID_QUERY, Map.of("film_id", filmId), genreRowMapper));
+    public List<Genre> getGenresByFilmId(long filmId) {
+        final String findGenresByFilmIdQuery = """
+            SELECT g.* FROM film_genre AS f
+            JOIN genres g ON g.id = f.genre_id WHERE f.film_id = :film_id
+            """;
+
+        return jdbc.query(findGenresByFilmIdQuery, Map.of("film_id", filmId), genreRowMapper);
     }
 
 
     @Override
-    public Set<Genre> getByIds(List<Long> genreIds) {
-        return new HashSet<>(
-            jdbc.query(FIND_BY_IDS_QUERY, new MapSqlParameterSource("genres", genreIds), genreRowMapper)
-        );
+    public List<Genre> getByIds(List<Long> genreIds) {
+        final String findByIdsQuery = "SELECT * FROM genres WHERE id IN (:genres)";
+
+        return jdbc.query(findByIdsQuery, new MapSqlParameterSource("genres", genreIds), genreRowMapper);
+
     }
 }

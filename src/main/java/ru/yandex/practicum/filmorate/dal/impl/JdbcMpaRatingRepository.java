@@ -18,22 +18,23 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JdbcMpaRatingRepository implements MpaRatingRepository {
-    static String FIND_ALL_QUERY = "SELECT * FROM ratings";
-    static String FIND_BY_ID_QUERY = "SELECT * FROM ratings WHERE id = :id";
-
     final NamedParameterJdbcOperations jdbc;
     final MpaRatingRowMapper mpaRatingRowMapper;
 
     @Override
     public List<MpaRating> getMpaRatings() {
-        return jdbc.query(FIND_ALL_QUERY, mpaRatingRowMapper);
+        String findAllQuery = "SELECT * FROM ratings";
+
+        return jdbc.query(findAllQuery, mpaRatingRowMapper);
     }
 
     @Override
     public Optional<MpaRating> getById(long mpaRatingId) {
+        String findByIdQuery = "SELECT * FROM ratings WHERE id = :id";
+
         try {
             return Optional.ofNullable(jdbc.queryForObject(
-                FIND_BY_ID_QUERY, new MapSqlParameterSource("id", mpaRatingId), mpaRatingRowMapper
+                findByIdQuery, new MapSqlParameterSource("id", mpaRatingId), mpaRatingRowMapper
             ));
         } catch (EmptyResultDataAccessException ignored) {
             return Optional.empty();

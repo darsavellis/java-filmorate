@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.validation.UserValidator;
 
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -25,7 +26,7 @@ public class BaseUserService implements UserService {
 
     final UserRepository userRepository;
 
-    public Collection<User> getUsers() {
+    public List<User> getUsers() {
         return userRepository.getAll();
     }
 
@@ -36,7 +37,7 @@ public class BaseUserService implements UserService {
     }
 
     @Override
-    public Collection<Event> getEventsOfUser(Long userId) {
+    public List<Event> getEventsOfUser(Long userId) {
         Collection<Event> event = userRepository.getUserEvents(userId);
         if (event.isEmpty()) {
             throw new NotFoundException(String.format(NOT_FOUND_EVENTS_FOR_USER, userId));

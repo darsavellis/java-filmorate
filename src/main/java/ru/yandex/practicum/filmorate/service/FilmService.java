@@ -2,11 +2,10 @@ package ru.yandex.practicum.filmorate.service;
 
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface FilmService {
-    Collection<Film> getFilms();
+    List<Film> getFilms();
 
     Film getFilmById(long filmId);
 
@@ -20,7 +19,7 @@ public interface FilmService {
 
     List<Film> searchFilms(String query, String by);
 
-    Collection<Film> getFilmsByDirector(long directorId, String sortBy);
+    List<Film> getFilmsByDirector(long directorId, String sortBy);
 
     List<Film> getMostPopularFilms(long count);
 
