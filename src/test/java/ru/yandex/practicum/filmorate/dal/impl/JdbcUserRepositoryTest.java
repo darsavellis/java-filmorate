@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.FilmResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.*;
 import ru.yandex.practicum.filmorate.model.*;
 
@@ -19,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase
 @Import({JdbcUserRepository.class, JdbcFilmRepository.class, JdbcLikeRepository.class, FilmRowMapper.class,
         UserRowMapper.class, GenreRowMapper.class, FriendshipRowMapper.class, EventRowMapper.class,
-        DirectorRowMapper.class, MpaRatingRowMapper.class})
+        DirectorRowMapper.class, MpaRatingRowMapper.class, FilmResultSetExtractor.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcUserRepositoryTest {
     private final JdbcUserRepository userRepository;

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.impl.JdbcFilmRepository;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.FilmResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.MpaRating;
@@ -17,10 +18,12 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 
 @JdbcTest
 @Import({JdbcFilmRepository.class, FilmRowMapper.class, GenreRowMapper.class,
-    MpaRatingRowMapper.class, DirectorRowMapper.class})
+    MpaRatingRowMapper.class, DirectorRowMapper.class, FilmResultSetExtractor.class})
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class JdbcFilmRepositoryTest {
     private final JdbcFilmRepository filmRepository;
@@ -30,7 +33,6 @@ public class JdbcFilmRepositoryTest {
     @DisplayName("Should return film by ID")
     public void should_return_film_by_id() {
         Film newFilm = new Film();
-        newFilm.setId(1);
         newFilm.setName("Интерстеллар");
         newFilm.setDescription("Описание интерстеллара");
         newFilm.setReleaseDate(LocalDate.of(2014, 11, 6));
@@ -39,13 +41,22 @@ public class JdbcFilmRepositoryTest {
         mpaRating.setId(3);
         newFilm.setMpa(mpaRating);
 
-        Optional<Film> filmOptional = filmRepository.getById(newFilm.getId());
+        Optional<Film> filmFromRepository =  Optional.ofNullable(filmRepository.save(newFilm));
+        assertNotNull(filmFromRepository);
 
-        assertThat(filmOptional)
-            .isPresent()
-            .hasValueSatisfying(film -> {
-                assertThat(film).usingRecursiveComparison().isEqualTo(newFilm);
-            });
+        assertThat(filmFromRepository)
+                .isPresent()
+                .hasValueSatisfying(film -> {
+            assertThat(film).usingRecursiveComparison().isEqualTo(newFilm);
+        });
+
+        filmFromRepository = filmRepository.getById(newFilm.getId());
+
+        assertThat(filmFromRepository)
+                .isPresent()
+                .hasValueSatisfying(film -> {
+                    assertThat(film).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(newFilm);
+                });
     }
 
     @Test
@@ -74,6 +85,9 @@ public class JdbcFilmRepositoryTest {
         List<Film> localFilm = new ArrayList<>();
         localFilm.add(firstFilm);
         localFilm.add(secondFilm);
+
+        filmRepository.save(firstFilm);
+        filmRepository.save(secondFilm);
 
         List<Film> repositoryFilm = filmRepository.getAll();
 

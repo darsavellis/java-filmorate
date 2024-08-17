@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Import;
 import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.FilmResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.*;
 import ru.yandex.practicum.filmorate.model.*;
 
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @AutoConfigureTestDatabase
 @Import({JdbcReviewRepository.class, JdbcUserRepository.class, JdbcFilmRepository.class, UserRowMapper.class,
         FriendshipRowMapper.class, GenreRowMapper.class, FilmRowMapper.class, ReviewRowMapper.class, EventRowMapper.class,
-        DirectorRowMapper.class, MpaRatingRowMapper.class})
+        DirectorRowMapper.class, MpaRatingRowMapper.class, FilmResultSetExtractor.class})
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcReviewRepositoryTest {

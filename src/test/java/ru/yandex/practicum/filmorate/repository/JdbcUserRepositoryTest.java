@@ -30,15 +30,19 @@ class JdbcUserRepositoryTest {
     @DisplayName("Should return user by ID")
     public void should_return_user_by_id() {
         User newUser = new User();
-        newUser.setId(1);
         newUser.setEmail("aleksandrov@email.com");
         newUser.setName("Александр");
         newUser.setBirthday(LocalDate.of(1995, 5, 17));
         newUser.setLogin("aleksandrov");
 
-        Optional<User> userOptional = userRepository.findById(newUser.getId());
+        Optional<User> userFromRepository = Optional.ofNullable(userRepository.save(newUser));
+        assertThat(userFromRepository)
+                .isPresent()
+                .hasValueSatisfying(user -> assertThat(user).usingRecursiveComparison().isEqualTo(newUser));
 
-        assertThat(userOptional)
+        userFromRepository = userRepository.findById(newUser.getId());
+
+        assertThat(userFromRepository)
             .isPresent()
             .hasValueSatisfying(user -> assertThat(user).usingRecursiveComparison().isEqualTo(newUser));
     }
@@ -60,13 +64,16 @@ class JdbcUserRepositoryTest {
         secondUser.setBirthday(LocalDate.of(1991, 4, 15));
         secondUser.setLogin("ivanov");
 
+        userRepository.save(firstUser);
+        userRepository.save(secondUser);
+
         List<User> localUser = new ArrayList<>();
         localUser.add(firstUser);
         localUser.add(secondUser);
 
         List<User> repositoryUsers = userRepository.getAll();
 
-        assertThat(repositoryUsers).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(localUser);
+        assertThat(repositoryUsers).usingRecursiveComparison().isEqualTo(localUser);
     }
 
     @Test
@@ -87,7 +94,7 @@ class JdbcUserRepositoryTest {
         assertThat(savedUserById)
             .isPresent()
             .hasValueSatisfying(user -> {
-                assertThat(user).usingRecursiveComparison().ignoringExpectedNullFields().isEqualTo(newUser);
+                assertThat(user).usingRecursiveComparison().isEqualTo(newUser);
             });
     }
 
