@@ -71,7 +71,7 @@ public class BaseFilmService implements FilmService {
     @Override
     public Film updateFilm(Film newFilm) {
         FilmValidator.validate(newFilm);
-        filmRepository.getById(newFilm.getId())
+        Film film = filmRepository.getById(newFilm.getId())
             .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, newFilm.getId())));
 
         List<Genre> genres = getValidatedEntities(newFilm.getGenres(), Genre::getId,

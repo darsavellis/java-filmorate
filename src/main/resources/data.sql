@@ -1,9 +1,5 @@
-MERGE INTO PUBLIC.FRIEND_STATUSES (ID, STATUS)
-VALUES 
-              (1, 'PENDING'),
-              (2, 'ACCEPTED');
 MERGE INTO PUBLIC.RATINGS (ID, NAME, DESCRIPTION)
-VALUES 
+VALUES
               (1, 'G', 'для всех возрастов'),
               (2, 'PG', 'для всех, но маленьким детям рекомендуется просмотр с родителями'),
               (3, 'PG-13', ' детям до 13 лет просмотр не рекомендуется'),

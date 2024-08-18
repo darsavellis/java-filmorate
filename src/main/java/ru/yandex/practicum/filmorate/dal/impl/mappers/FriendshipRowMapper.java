@@ -16,7 +16,6 @@ public class FriendshipRowMapper implements RowMapper<Friendship> {
         friendship.setId(resultSet.getLong("id"));
         friendship.setSenderId(resultSet.getLong("first_user_id"));
         friendship.setReceiverId(resultSet.getLong("second_user_id"));
-        friendship.setStatusId(resultSet.getLong("status_id"));
         return friendship;
     }
 }

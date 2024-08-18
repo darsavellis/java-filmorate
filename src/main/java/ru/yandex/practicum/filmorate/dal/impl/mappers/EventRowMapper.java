@@ -19,7 +19,6 @@ public class EventRowMapper implements RowMapper<Event> {
         event.setEventType(EventType.fromString(resultSet.getString("event_type")));
         event.setOperation(OperationType.fromString(resultSet.getString("operation_type")));
         event.setEntityId(resultSet.getLong("entity_id"));
-        // тесты в postman хотят число, а не timestamp
         event.setTimestamp(resultSet.getTimestamp("timestamp").toInstant().toEpochMilli());
         return event;
     }
