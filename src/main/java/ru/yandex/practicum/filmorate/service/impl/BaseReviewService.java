@@ -79,7 +79,7 @@ public class BaseReviewService implements ReviewService {
     }
 
     @Override
-    public Review setLikeReview(long reviewId, long userId, boolean isPositive) {
+    public Review setLikeReview(long reviewId, long userId, int isPositive) {
         reviewRepository.setLikeReview(reviewId, userId, isPositive);
         return reviewRepository.getReviewById(reviewId)
             .orElseThrow(() -> new NotFoundException(String.format(REVIEW_ID_NOT_FOUND, reviewId)));
@@ -100,11 +100,10 @@ public class BaseReviewService implements ReviewService {
     }
 
     void deepValidateReview(Review review) {
-        if (userRepository.getById(review.getUserId()).isEmpty()) {
-            throw new NotFoundException("The user specified in the review was not found");
-        }
-        if (filmRepository.getById(review.getFilmId()).isEmpty()) {
-            throw new NotFoundException("The film specified in the review was not found");
-        }
+        userRepository.getById(review.getUserId())
+            .orElseThrow(() -> new NotFoundException("The user specified in the review was not found"));
+
+        filmRepository.getById(review.getFilmId())
+            .orElseThrow(() -> new NotFoundException("The film specified in the review was not found"));
     }
 }

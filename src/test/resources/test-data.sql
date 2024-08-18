@@ -1,4 +1,4 @@
-MERGE INTO PUBLIC.RATINGS
+MERGE INTO RATINGS
 (ID, NAME, DESCRIPTION)
 VALUES  (1, 'G', 'Фильм демонстрируется без ограничений.'),
         (2, 'PG', 'Детям рекомендуется смотреть фильм с родителями.'),
@@ -7,7 +7,7 @@ VALUES  (1, 'G', 'Фильм демонстрируется без ограни�
         родителей, либо законного представителя.'),
         (5, 'NC-17', 'Лица 17-летнего возраста и младше на фильм не допускаются.');
 
-MERGE INTO PUBLIC.GENRES
+MERGE INTO GENRES
 (ID, NAME)
 VALUES  (1, 'Комедия'),
         (2, 'Драма'),
@@ -16,28 +16,23 @@ VALUES  (1, 'Комедия'),
         (5, 'Документальный'),
         (6, 'Боевик');
 
-MERGE INTO PUBLIC.FRIEND_STATUSES
-(ID, STATUS)
-VALUES  (1, 'PENDING'),
-        (2, 'ACCEPTED');
-
-MERGE INTO PUBLIC.EVENT_TYPES (ID, NAME)
+MERGE INTO EVENT_TYPES (ID, NAME)
 VALUES
               (1, 'LIKE'),
 			  (2, 'REVIEW'),
 			  (3, 'FRIEND');
-MERGE INTO PUBLIC.OPERATION_TYPES (ID, NAME)
+MERGE INTO OPERATION_TYPES (ID, NAME)
 VALUES
               (1, 'REMOVE'),
 			  (2, 'ADD'),
 			  (3, 'UPDATE');
 
-MERGE INTO PUBLIC.FILMS
+MERGE INTO FILMS
 (ID, NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATING_ID)
 VALUES  (1, 'Интерстеллар', 'Описание интерстеллара', '2014-11-06', '169', 3),
         (2, '1 + 1', 'Описание 1 + 1', '2011-09-23', '112', 4);
 
-MERGE INTO PUBLIC.USERS
+MERGE INTO USERS
 (ID, EMAIL, LOGIN, NAME, SURNAME, BIRTHDAY)
 VALUES  (1, 'aleksandrov@email.com', 'aleksandrov', 'Александр', 'Иванов', '1995-05-17'),
         (2, 'ivanov@email.com', 'ivanov', 'Иван', 'Александров', '1991-04-15');

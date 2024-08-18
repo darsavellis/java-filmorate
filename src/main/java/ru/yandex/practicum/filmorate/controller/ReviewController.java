@@ -44,12 +44,12 @@ public class ReviewController {
 
     @PutMapping("/{id}/like/{userId}")
     public Review setLikeToReview(@PathVariable("id") long reviewId, @PathVariable long userId) {
-        return reviewService.setLikeReview(reviewId, userId, true);
+        return reviewService.setLikeReview(reviewId, userId, 1);
     }
 
     @PutMapping("/{id}/dislike/{userId}")
     public Review setDislikeToReview(@PathVariable("id") long reviewId, @PathVariable long userId) {
-        return reviewService.setLikeReview(reviewId, userId, false);
+        return reviewService.setLikeReview(reviewId, userId, -1);
     }
 
     @DeleteMapping("/{id}/like/{userId}")

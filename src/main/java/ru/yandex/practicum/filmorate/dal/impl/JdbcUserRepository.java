@@ -3,18 +3,20 @@ package ru.yandex.practicum.filmorate.dal.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.UserResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.EventRowMapper;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.FriendshipRowMapper;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.UserRowMapper;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.OperationType;
+import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -27,6 +29,7 @@ public class JdbcUserRepository implements UserRepository {
     final NamedParameterJdbcOperations jdbc;
     final FriendshipRowMapper friendshipRowMapper;
     final UserRowMapper userRowMapper;
+    final UserResultSetExtractor userExtractor;
     final EventRowMapper eventRowMapper;
 
     @Override
@@ -40,15 +43,11 @@ public class JdbcUserRepository implements UserRepository {
     public Optional<User> getById(long userId) {
         String findUserByIdQuery = "SELECT * FROM users WHERE id = :id";
 
-        try {
-            return Optional.ofNullable(jdbc.queryForObject(
-                findUserByIdQuery,
-                new MapSqlParameterSource("id", userId),
-                userRowMapper
-            ));
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(jdbc.query(
+            findUserByIdQuery,
+            new MapSqlParameterSource("id", userId),
+            userExtractor
+        ));
     }
 
     @Override
@@ -60,9 +59,7 @@ public class JdbcUserRepository implements UserRepository {
         SqlParameterSource userParameters = getSqlUserParameters(user);
         jdbc.update(insertUserQuery, userParameters, generatedKeyHolder, new String[]{"id"});
         Long id = generatedKeyHolder.getKeyAs(Long.class);
-        if (Objects.nonNull(id)) {
-            user.setId(id);
-        }
+        user.setId(Objects.requireNonNull(id));
         return user;
     }
 
@@ -86,61 +83,33 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     public List<User> getFriends(long userId) {
-        String findUserFriendsQuery = "SELECT (first_user_id + second_user_id - :user_id) FROM friendships f " +
-            "WHERE (first_user_id = :user_id)";
+        String findUserFriendsQuery = """
+            SELECT u.*
+            FROM friendships f
+            JOIN users u ON u.id = second_user_id
+            WHERE (first_user_id = :user_id)
+            """;
 
-        List<Long> friendIds = jdbc.queryForList(findUserFriendsQuery, Map.of("user_id", userId), Long.class);
-        return friendIds
-            .stream()
-            .map((friendId) -> getById(friendId)
-                .orElseThrow(() -> new NotFoundException(String.format("User ID=%s not found", friendId))))
-            .toList();
+        return jdbc.query(findUserFriendsQuery, Map.of("user_id", userId), userRowMapper);
     }
 
     @Override
-    public void addFriend(long firstUserId, long secondUserId) {
-        String modifyFriendRequestQuery = "MERGE INTO friendships (first_user_id, second_user_id, status_id) " +
-            "KEY (first_user_id, second_user_id) VALUES (:first_user_id, :second_user_id, :status_id)";
+    public void addFriend(long senderId, long receiverId) {
+        String modifyFriendRequestQuery = "MERGE INTO friendships (first_user_id, second_user_id) " +
+            "VALUES (:first_user_id, :second_user_id)";
 
-        Optional<Friendship> friendshipOptional = getFriendship(firstUserId, secondUserId);
-
-        if (friendshipOptional.isPresent()) {
-            Friendship friendship = friendshipOptional.get();
-
-            if (friendship.getStatusId() == 1 && firstUserId == friendship.getReceiverId()) {
-                jdbc.update(
-                    modifyFriendRequestQuery,
-                    Map.of("first_user_id", secondUserId, "second_user_id", firstUserId, "status_id", 2)
-                );
-            }
-        } else {
-            jdbc.update(
-                modifyFriendRequestQuery,
-                Map.of("first_user_id", firstUserId, "second_user_id", secondUserId, "status_id", 1)
-            );
-        }
+        jdbc.update(
+            modifyFriendRequestQuery,
+            Map.of("first_user_id", senderId, "second_user_id", receiverId)
+        );
     }
 
     @Override
-    public void deleteFriend(long firstUserId, long receiverId) {
-        String modifyFriendRequestQuery = "MERGE INTO friendships (first_user_id, second_user_id, status_id) " +
-            "KEY (first_user_id, second_user_id) VALUES (:first_user_id, :second_user_id, :status_id)";
-        String deleteFriendRequestQuery = "DELETE FROM friendships WHERE id = :id";
+    public void deleteFriend(long senderId, long receiverId) {
+        String deleteFriendRequestQuery = "DELETE FROM friendships WHERE first_user_id = :first_user_id" +
+            " AND second_user_id = :second_user_id";
 
-        Optional<Friendship> friendshipOptional = getFriendship(firstUserId, receiverId);
-
-        if (friendshipOptional.isPresent()) {
-            Friendship friendship = friendshipOptional.get();
-
-            if (friendship.getStatusId() == 1 && firstUserId == friendship.getSenderId()) {
-                jdbc.update(deleteFriendRequestQuery, Map.of("id", friendship.getId()));
-            } else {
-                jdbc.update(
-                    modifyFriendRequestQuery,
-                    Map.of("first_user_id", firstUserId, "second_user_id", receiverId, "status_id", 1)
-                );
-            }
-        }
+        jdbc.update(deleteFriendRequestQuery, Map.of("first_user_id", senderId, "second_user_id", receiverId));
     }
 
     @Override
@@ -178,18 +147,5 @@ public class JdbcUserRepository implements UserRepository {
             .addValue("name", user.getName())
             .addValue("birthday", user.getBirthday())
             .addValue("id", user.getId());
-    }
-
-    Optional<Friendship> getFriendship(long senderId, long receiverId) {
-        String checkFriendshipStatusQuery = "SELECT * FROM friendships f " +
-            "WHERE first_user_id = :first_user_id AND second_user_id = :second_user_id OR " +
-            "first_user_id  = :second_user_id AND second_user_id = first_user_id";
-
-        try {
-            return Optional.ofNullable(jdbc.queryForObject(checkFriendshipStatusQuery,
-                Map.of("first_user_id", senderId, "second_user_id", receiverId), friendshipRowMapper));
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
     }
 }

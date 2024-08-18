@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.dal.FilmRepository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
 import ru.yandex.practicum.filmorate.dal.UserRepository;
 import ru.yandex.practicum.filmorate.dal.impl.extractors.FilmResultSetExtractor;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.ReviewResultSetExtractor;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.UserResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.*;
@@ -25,7 +27,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @AutoConfigureTestDatabase
 @Import({JdbcReviewRepository.class, JdbcUserRepository.class, JdbcFilmRepository.class, UserRowMapper.class,
     FriendshipRowMapper.class, GenreRowMapper.class, FilmRowMapper.class, ReviewRowMapper.class, EventRowMapper.class,
-    DirectorRowMapper.class, MpaRatingRowMapper.class, FilmResultSetExtractor.class})
+    DirectorRowMapper.class, MpaRatingRowMapper.class, FilmResultSetExtractor.class, ReviewResultSetExtractor.class,
+    UserResultSetExtractor.class})
 
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class JdbcReviewRepositoryTest {
@@ -111,7 +114,7 @@ class JdbcReviewRepositoryTest {
         Optional<Review> receivedReview = reviewRepository.getReviewById(review1.getReviewId());
         assertThat(receivedReview).isPresent();
         long oldUseful = review1.getUseful();
-        reviewRepository.setLikeReview(review1.getReviewId(), user1.getId(), true);
+        reviewRepository.setLikeReview(review1.getReviewId(), user1.getId(), 1);
         receivedReview = reviewRepository.getReviewById(review1.getReviewId());
         assertThat(receivedReview).isPresent();
         long newUseful = receivedReview.get().getUseful();
@@ -119,14 +122,14 @@ class JdbcReviewRepositoryTest {
 
         oldUseful = receivedReview.get().getUseful();
         // повторный лайк не должен увеличить рейтинг
-        reviewRepository.setLikeReview(review1.getReviewId(), user1.getId(), true);
+        reviewRepository.setLikeReview(review1.getReviewId(), user1.getId(), 1);
         receivedReview = reviewRepository.getReviewById(review1.getReviewId());
         assertThat(receivedReview).isPresent();
         newUseful = receivedReview.get().getUseful();
         assertEquals(oldUseful, newUseful, "Ожидается полезность на прежнем уровне");
 
         oldUseful = receivedReview.get().getUseful();
-        reviewRepository.setLikeReview(review1.getReviewId(), user2.getId(), false);
+        reviewRepository.setLikeReview(review1.getReviewId(), user2.getId(), -1);
         receivedReview = reviewRepository.getReviewById(review1.getReviewId());
         assertThat(receivedReview).isPresent();
         newUseful = receivedReview.get().getUseful();

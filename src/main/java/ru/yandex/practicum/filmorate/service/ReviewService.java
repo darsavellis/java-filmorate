@@ -15,7 +15,7 @@ public interface ReviewService {
 
     boolean deleteReview(long reviewId);
 
-    Review setLikeReview(long reviewId, long userId, boolean ifPositive);
+    Review setLikeReview(long reviewId, long userId, int ifPositive);
 
     Review deleteLikeReview(long reviewId, long userId); // удаляет и лайки и дизлайки
 

@@ -40,7 +40,7 @@ public class JdbcFilmRepository implements FilmRepository {
             SELECT f.*, r.name AS rating_name, r.description AS rating_description, d.id AS director_id,
             d.name AS director_name
             FROM films f
-            JOIN ratings r ON r.id = f.rating_id
+            LEFT JOIN ratings r ON r.id = f.rating_id
             LEFT JOIN film_director fd ON fd.film_id = f.id
             LEFT JOIN directors d ON d.id = fd.director_id
             """;
@@ -67,12 +67,8 @@ public class JdbcFilmRepository implements FilmRepository {
             LEFT JOIN genres g ON g.id = fg.genre_id
             WHERE f.id = :id""";
 
-        try {
-            List<Film> resultFilm = jdbc.query(findByIdQuery, Map.of("id", filmId), filmResultSetExtractor);
-            return Optional.ofNullable(Objects.requireNonNull(resultFilm).getFirst());
-        } catch (Exception ignored) {
-            return Optional.empty();
-        }
+        List<Film> resultFilm = jdbc.query(findByIdQuery, Map.of("id", filmId), filmResultSetExtractor);
+        return Objects.requireNonNull(resultFilm).stream().findFirst();
     }
 
     @Override
@@ -103,9 +99,7 @@ public class JdbcFilmRepository implements FilmRepository {
         SqlParameterSource filmParam = getSqlFilmParameters(film);
         jdbc.update(filmInsertQuery, filmParam, generatedKeyHolder, new String[]{"id"});
         Long generatedId = generatedKeyHolder.getKeyAs(Long.class);
-        if (Objects.nonNull(generatedId)) {
-            film.setId(generatedId);
-        }
+        film.setId(Objects.requireNonNull(generatedId));
         insertFilmRelations(film);
         return film;
     }
@@ -175,23 +169,23 @@ public class JdbcFilmRepository implements FilmRepository {
     @Override
     public List<Film> getCommonFilms(long userId, long friendId) {
         final String listOfCommonFilms = """
-            SELECT f.*, r.name AS rating_name, r.description AS rating_description, d.id AS director_id,
-            d.name AS director_name
-            FROM films f
-            JOIN ratings r ON r.id = f.rating_id
-            LEFT JOIN film_director fd ON fd.FILM_ID =f.ID
-            LEFT JOIN directors d ON fd.DIRECTOR_ID = d.ID
-            JOIN likes ON f.id = likes.film_id
-            WHERE f.id = (SELECT film_id FROM likes WHERE film_id =
-            (SELECT film_id FROM likes WHERE user_id = :userId LIMIT 1) AND user_id = :friendId LIMIT 1)
-            GROUP BY f.id, likes.id ORDER BY COUNT(likes.user_id) DESC
+            SELECT f.*, r.ID AS RATING_ID, r.NAME AS RATING_NAME,
+            r.DESCRIPTION AS RATING_DESCRIPTION, d.id AS director_id,
+            d.name AS director_name,COUNT(DISTINCT l.USER_ID) AS likes_f
+            FROM FILMS f
+            JOIN LIKES l ON l.FILM_ID = f.ID
+            LEFT JOIN RATINGS r ON r.ID = f.RATING_ID
+            LEFT JOIN film_director fd ON fd.film_id =f.id
+            LEFT JOIN directors d ON fd.director_id = d.id
+            WHERE l.USER_ID IN (:user_id, :friend_id)
+            GROUP BY f.ID
+            HAVING likes_f = 2
             """;
         final String findAllGenresQuery = "SELECT * FROM genres";
-        final String findAllDirectorsQuery = "SELECT * FROM directors";
 
         Map<Long, Film> filmMap = new HashMap<>();
 
-        jdbc.query(listOfCommonFilms, Map.of("userId", userId, "friendId", friendId), filmRowMapper)
+        jdbc.query(listOfCommonFilms, Map.of("user_id", userId, "friend_id", friendId), filmRowMapper)
             .forEach(film -> filmMap.put(film.getId(), film));
         Map<Long, Genre> genreMap = getEntitiesMap(findAllGenresQuery, genreRowMapper, Genre::getId);
 

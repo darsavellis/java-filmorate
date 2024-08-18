@@ -22,7 +22,7 @@ public class JdbcLikeRepository implements LikeRepository {
 
     @Override
     public void addLike(long filmId, long userId) {
-        String addLikeQuery = "INSERT INTO likes (film_id, user_id) VALUES(:film_id, :user_id)";
+        String addLikeQuery = "MERGE INTO likes (film_id, user_id) VALUES(:film_id, :user_id)";
 
         jdbc.update(addLikeQuery, Map.of("film_id", filmId, "user_id", userId));
     }

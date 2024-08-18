@@ -19,7 +19,7 @@ public interface ReviewRepository {
 
     boolean deleteReview(long reviewId);
 
-    void setLikeReview(long reviewId, long userId, boolean isPositive);
+    void setLikeReview(long reviewId, long userId, int isPositive);
 
     void deleteLikeReview(long reviewId, long userId);
 

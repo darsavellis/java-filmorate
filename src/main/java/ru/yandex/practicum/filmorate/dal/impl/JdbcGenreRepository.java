@@ -3,11 +3,11 @@ package ru.yandex.practicum.filmorate.dal.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.GenreRepository;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.GenreResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Genre;
 
@@ -21,6 +21,7 @@ import java.util.Optional;
 public class JdbcGenreRepository implements GenreRepository {
     final NamedParameterJdbcOperations jdbc;
     final GenreRowMapper genreRowMapper;
+    final GenreResultSetExtractor genreExtractor;
 
     @Override
     public List<Genre> getGenres() {
@@ -33,13 +34,9 @@ public class JdbcGenreRepository implements GenreRepository {
     public Optional<Genre> getGenreById(long genreId) {
         final String findByIdQuery = "SELECT * FROM genres WHERE id = :id";
 
-        try {
-            return Optional.ofNullable(
-                jdbc.queryForObject(findByIdQuery, new MapSqlParameterSource("id", genreId), genreRowMapper)
-            );
-        } catch (EmptyResultDataAccessException ignored) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(
+            jdbc.query(findByIdQuery, new MapSqlParameterSource("id", genreId), genreExtractor)
+        );
     }
 
     @Override

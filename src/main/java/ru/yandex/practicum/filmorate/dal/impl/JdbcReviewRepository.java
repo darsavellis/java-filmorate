@@ -3,13 +3,13 @@ package ru.yandex.practicum.filmorate.dal.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.ReviewRepository;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.ReviewResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.ReviewRowMapper;
 import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.OperationType;
@@ -18,7 +18,6 @@ import ru.yandex.practicum.filmorate.model.Review;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,75 +25,50 @@ import java.util.stream.Collectors;
 public class JdbcReviewRepository implements ReviewRepository {
     final NamedParameterJdbcOperations jdbc;
     final ReviewRowMapper reviewRowMapper;
+    final ReviewResultSetExtractor reviewExtractor;
 
     @Override
     public Optional<Review> getReviewById(long reviewId) {
-        final String findReviewQuery = "SELECT * FROM reviews WHERE id = :review_id";
-        final String countReviewScore = "SELECT SUM((is_like - 1 + is_like % 2)) FROM review_user " +
-            "WHERE review_id = :review_id";
+        final String findReviewQuery = """
+            SELECT r.*, SUM(ru.is_like) AS useful
+            FROM reviews r
+            LEFT JOIN review_user ru ON ru.review_id = r.id
+            WHERE id = :review_id
+            GROUP BY r.id
+            ORDER BY useful DESC
+            """;
 
-        try {
-            Optional<Review> review = Optional.ofNullable(jdbc.queryForObject(
-                findReviewQuery,
-                Map.of("review_id", reviewId),
-                reviewRowMapper
-            ));
-            Long score = jdbc.queryForObject(countReviewScore, Map.of("review_id", reviewId), Long.class);
-
-            if (Objects.nonNull(score) && review.isPresent()) {
-                review.get().setUseful(score);
-            }
-            return review;
-        } catch (DataAccessException ignored) {
-            return Optional.empty();
-        }
+        List<Review> reviews = jdbc.query(findReviewQuery, Map.of("review_id", reviewId), reviewExtractor);
+        return Objects.requireNonNull(reviews).stream().findFirst();
     }
 
     @Override
     public List<Review> getReviewsByFilmId(long filmId, long count) {
-        final String findFilmReviewsQuery = "SELECT * FROM reviews WHERE film_id = :film_id LIMIT :count";
-        final String countFilmsReviewsScores = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
-            "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id " +
-            "WHERE r.film_id = :film_id GROUP BY r.id";
+        final String reviewsByFilmIdQuery = """
+            SELECT r.*, SUM(ru.is_like) AS useful
+            FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id
+            WHERE r.film_id = :film_id
+            GROUP BY r.id
+            LIMIT :count
+            """;
 
-        Map<Long, Long> scoreMap = new HashMap<>(); // мап пост id - рейтинг
-        Map<Long, Review> reviewMap = new HashMap<>();
-
-        jdbc.query(countFilmsReviewsScores, Map.of("film_id", filmId), (resultSet) -> {
-            Long id = resultSet.getLong("id");
-            Long score = resultSet.getLong("useful");
-            scoreMap.put(id, score);
-        });
-        jdbc.query(findFilmReviewsQuery, Map.of("film_id", filmId, "count", count), reviewRowMapper)
-            .forEach((review) -> {
-                review.setUseful(scoreMap.get(review.getReviewId()));
-                reviewMap.put(review.getReviewId(), review);
-            });
-
-        return reviewMap.values().stream().sorted(Comparator.comparing(Review::getUseful).reversed())
-            .collect(Collectors.toList());
+        return Objects.requireNonNull(
+                jdbc.query(reviewsByFilmIdQuery, Map.of("film_id", filmId, "count", count), reviewExtractor))
+            .stream().sorted(Comparator.comparingLong(Review::getUseful).reversed()).toList();
     }
 
     @Override
     public List<Review> getAllReviews(long count) {
-        final String findAllReviewsQuery = "SELECT * FROM reviews LIMIT :count";
-        final String countAllReviewsScores = "SELECT r.id, SUM((ru.is_like - 1 + ru.is_like % 2)) " +
-            "AS useful FROM review_user ru RIGHT JOIN reviews r ON r.id = ru.review_id GROUP BY r.id";
+        final String reviewsByFilmIdQuery = """
+            SELECT r.*, SUM(ru.is_like) AS useful
+            FROM review_user ru
+            RIGHT JOIN reviews r ON r.id = ru.review_id
+            GROUP BY r.id
+            LIMIT :count
+            """;
 
-        Map<Long, Long> scoreMap = new HashMap<>();
-        Map<Long, Review> reviewMap = new HashMap<>();
-
-        jdbc.query(countAllReviewsScores, (resultSet) -> {
-            scoreMap.put(resultSet.getLong("id"),
-                resultSet.getLong("useful"));
-        });
-        jdbc.query(findAllReviewsQuery, Map.of("count", count), reviewRowMapper).forEach((review) -> {
-            review.setUseful(scoreMap.get(review.getReviewId()));
-            reviewMap.put(review.getReviewId(), review);
-        });
-
-        return reviewMap.values().stream().sorted(Comparator.comparing(Review::getUseful).reversed())
-            .collect(Collectors.toList());
+        return Objects.requireNonNull(jdbc.query(reviewsByFilmIdQuery, Map.of("count", count), reviewExtractor)).
+            stream().sorted(Comparator.comparingLong(Review::getUseful).reversed()).toList();
     }
 
     @Override
@@ -112,14 +86,9 @@ public class JdbcReviewRepository implements ReviewRepository {
             .addValue("timestamp", timestamp);
 
         jdbc.update(reviewInsertQuery, parameters, generatedKeyHolder, new String[]{"id"});
-
         Long id = generatedKeyHolder.getKeyAs(Long.class);
-
-        if (Objects.nonNull(id)) {
-            review.setReviewId(id);
-            return review;
-        }
-        return null;
+        review.setReviewId(Objects.requireNonNull(id));
+        return review;
     }
 
     @Override
@@ -147,7 +116,7 @@ public class JdbcReviewRepository implements ReviewRepository {
     }
 
     @Override
-    public void setLikeReview(long reviewId, long userId, boolean isPositive) {
+    public void setLikeReview(long reviewId, long userId, int isPositive) {
         final String addLikeQuery = "MERGE INTO review_user (review_id, user_id, is_like) " +
             "VALUES (:review_id, :user_id, :is_like)";
 
@@ -174,12 +143,14 @@ public class JdbcReviewRepository implements ReviewRepository {
     @Override
     public void eventReview(long userId, long reviewId, OperationType operationType) {
         final String insertEventQuery = "INSERT INTO events (user_id, entity_id, timestamp, type_id, operation_id) " +
-            "SELECT :user_id, :entity_id, :timestamp, t.id , o.id FROM event_types t, operation_types o " +
-            "WHERE t.name = :event_type AND o.name = :operation_type";
+            "SELECT :user_id, :entity_id, :timestamp, t.id, o.id " +
+            "FROM event_types t, operation_types o " +
+            "WHERE t.name = :event_type AND o.name = :operation_type LIMIT 1";
 
         Timestamp timestamp = Timestamp.from(Instant.now());
         jdbc.update(insertEventQuery, Map.of("user_id", userId, "entity_id", reviewId,
             "timestamp", timestamp, "event_type", EventType.REVIEW.toString(),
             "operation_type", operationType.toString()));
+
     }
 }

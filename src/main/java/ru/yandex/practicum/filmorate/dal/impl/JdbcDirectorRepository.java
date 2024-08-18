@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dal.DirectorRepository;
+import ru.yandex.practicum.filmorate.dal.impl.extractors.DirectorResultSetExtractor;
 import ru.yandex.practicum.filmorate.dal.impl.mappers.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 
@@ -23,6 +24,7 @@ import java.util.Optional;
 public class JdbcDirectorRepository implements DirectorRepository {
     final NamedParameterJdbcOperations jdbc;
     final DirectorRowMapper directorRowMapper;
+    final DirectorResultSetExtractor directorExtractor;
 
     @Override
     public List<Director> getAll() {
@@ -35,12 +37,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
     public Optional<Director> getById(long directorId) {
         final String findByIdQuery = "SELECT * FROM directors WHERE id = :id";
 
-        try {
-            Director director = jdbc.queryForObject(findByIdQuery, Map.of("id", directorId), directorRowMapper);
-            return Optional.ofNullable(director);
-        } catch (Exception ignored) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(jdbc.query(findByIdQuery, Map.of("id", directorId), directorExtractor));
     }
 
     @Override
@@ -61,10 +58,7 @@ public class JdbcDirectorRepository implements DirectorRepository {
 
         jdbc.update(insertQuery, parameters, generatedKeyHolder, new String[]{"id"});
         Long id = generatedKeyHolder.getKeyAs(Long.class);
-
-        if (Objects.nonNull(id)) {
-            director.setId(id);
-        }
+        director.setId(Objects.requireNonNull(id));
 
         return director;
     }
