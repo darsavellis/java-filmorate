@@ -19,7 +19,7 @@ public class User {
     @NotBlank
     @Pattern(regexp = "[^ ]+")
     String login;
-    @Pattern(regexp = "[a-zA-Z0-9. ']+")
+    @Pattern(regexp = "[a-zA-Z0-9. ']*")
     String name;
     @NotNull
     @Past

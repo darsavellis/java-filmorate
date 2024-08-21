@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,12 +20,12 @@ public class MpaRatingController {
     final MpaRatingService mpaRatingService;
 
     @GetMapping
-    public ResponseEntity<Collection<MpaRating>> getMpaRatings() {
-        return ResponseEntity.status(200).body(mpaRatingService.getMpaRatings());
+    public Collection<MpaRating> getMpaRatings() {
+        return mpaRatingService.getMpaRatings();
     }
 
-    @GetMapping("/{mpa-id}")
-    public ResponseEntity<MpaRating> getMpaRatingById(@PathVariable("mpa-id") long mpaId) {
-        return ResponseEntity.status(200).body(mpaRatingService.getMpaRatingById(mpaId));
+    @GetMapping("/{mpaId}")
+    public MpaRating getMpaRatingById(@PathVariable long mpaId) {
+        return mpaRatingService.getMpaRatingById(mpaId);
     }
 }

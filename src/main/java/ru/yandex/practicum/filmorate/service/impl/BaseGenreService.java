@@ -9,7 +9,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
-import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -19,13 +19,13 @@ public class BaseGenreService implements GenreService {
     final GenreRepository genreRepository;
 
     @Override
-    public Collection<Genre> getGenres() {
+    public List<Genre> getGenres() {
         return genreRepository.getGenres();
     }
 
     @Override
     public Genre getGenreById(long genreId) {
         return genreRepository.getGenreById(genreId)
-                .orElseThrow(() -> new NotFoundException(String.format(GENRE_ID_NOT_FOUND, genreId)));
+            .orElseThrow(() -> new NotFoundException(String.format(GENRE_ID_NOT_FOUND, genreId)));
     }
 }

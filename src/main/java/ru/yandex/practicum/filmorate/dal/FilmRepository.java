@@ -12,9 +12,19 @@ public interface FilmRepository {
 
     Optional<Film> getById(long filmId);
 
+    List<Film> getByDirectorId(long directorId, String sortBy);
+
     Film save(Film film);
 
     Film update(Film newFilm);
 
     boolean delete(long filmId);
+
+    List<Film> getCommonFilms(long userId, long friendId);
+
+    List<Film> getRecommendations(long userId);
+
+    List<Film> getTopPopularFilms(Long limit, Long genreId, Long year);
+
+    List<Film> searchFilms(String query, String by);
 }

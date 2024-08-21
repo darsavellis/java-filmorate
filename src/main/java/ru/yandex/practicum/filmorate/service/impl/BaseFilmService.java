@@ -3,134 +3,170 @@ package ru.yandex.practicum.filmorate.service.impl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import ru.yandex.practicum.filmorate.dal.*;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.MpaRating;
+import ru.yandex.practicum.filmorate.model.OperationType;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.validation.FilmValidator;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class BaseFilmService implements FilmService {
-    static final String MPA_RATING_ID_NOT_VALID = "MpaRating ID=%s not valid";
     static final String FILM_ID_NOT_FOUND = "Film ID=%s not found";
-    public static final String GENRES_NOT_VALID = "Genres %s not valid";
+    static final String GENRES_NOT_VALID = "Genres %s not valid";
+    static final String DIRECTORS_NOT_VALID = "Directors %s not valid";
+    static final String USER_ID_NOT_FOUND = "User ID=%s not found";
+    static final String DIRECTOR_ID_NOT_FOUND = "Director ID=%s not found";
+
     final FilmRepository filmRepository;
-    final MpaRatingRepository mpaRatingRepository;
     final GenreRepository genreRepository;
     final LikeRepository likeRepository;
+    final DirectorRepository directorRepository;
+    final UserRepository userRepository;
 
+    @Override
     public List<Film> getFilms() {
-        return filmRepository.getAll().stream().peek(film -> {
-            MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId()).orElseThrow(
-                    () -> new ValidationException(String.format(MPA_RATING_ID_NOT_VALID, film.getMpa().getId())));
-
-            Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
-            film.setMpa(mpaRating);
-            film.setLikes(likes);
-        }).collect(Collectors.toList());
+        return filmRepository.getAll();
     }
 
     @Override
     public Film getFilmById(long filmId) {
         Film film = filmRepository.getById(filmId)
-                .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
+            .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
 
-        MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId())
-                .orElseThrow(() -> new ValidationException(String.format(MPA_RATING_ID_NOT_VALID, filmId)));
+        List<Genre> genres = genreRepository.getGenresByFilmId(filmId);
+        List<Director> directors = directorRepository.getDirectorsByFilmId(filmId);
 
-        Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
-
-        film.setMpa(mpaRating);
-        film.setLikes(likes);
+        film.setGenres(new HashSet<>(genres));
+        film.setDirectors(new HashSet<>(directors));
 
         return film;
     }
 
+    @Override
     public Film createFilm(Film film) {
         FilmValidator.validate(film);
-        MpaRating mpaRating = mpaRatingRepository.getById(film.getMpa().getId()).orElseThrow(
-                () -> new ValidationException(String.format(MPA_RATING_ID_NOT_VALID, film.getMpa().getId())));
+        List<Genre> genres = getValidatedEntities(film.getGenres(), Genre::getId,
+            genreRepository::getByIds, GENRES_NOT_VALID);
+        List<Director> directors = getValidatedEntities(film.getDirectors(), Director::getId,
+            directorRepository::getByIds, DIRECTORS_NOT_VALID);
 
-        List<Long> genreIds = film.getGenres().stream().map(Genre::getId).collect(Collectors.toList());
-        Set<Genre> genres = genreRepository.getByIds(genreIds);
-        Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
-
-        if (genreIds.size() != genres.size()) {
-            throw new ValidationException(String.format(GENRES_NOT_VALID, genreIds));
-        }
-
-        film.setMpa(mpaRating);
-        film.setGenres(genres);
-        film.setLikes(likes);
+        film.setGenres(new HashSet<>(genres));
+        film.setDirectors(new HashSet<>(directors));
 
         return mapToSortedFields(filmRepository.save(film));
     }
 
+    @Override
     public Film updateFilm(Film newFilm) {
         FilmValidator.validate(newFilm);
-
         Film film = filmRepository.getById(newFilm.getId())
-                .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, newFilm.getId())));
+            .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, newFilm.getId())));
 
-        MpaRating mpaRating = mpaRatingRepository.getById(newFilm.getMpa().getId()).orElseThrow(
-                () -> new NotFoundException(String.format(MPA_RATING_ID_NOT_VALID, newFilm.getMpa().getId())));
+        List<Genre> genres = getValidatedEntities(newFilm.getGenres(), Genre::getId,
+            genreRepository::getByIds, GENRES_NOT_VALID);
+        List<Director> directors = getValidatedEntities(newFilm.getDirectors(), Director::getId,
+            directorRepository::getByIds, DIRECTORS_NOT_VALID);
 
-        List<Long> genreIds = newFilm.getGenres().stream().map(Genre::getId).collect(Collectors.toList());
-        Set<Genre> genres = genreRepository.getByIds(genreIds);
-        Set<Long> likes = likeRepository.getLikesByFilmId(film.getId());
+        newFilm.setGenres(new HashSet<>(genres));
+        newFilm.setDirectors(new HashSet<>(directors));
 
-        if (genreIds.size() != genres.size()) {
-            throw new ValidationException(String.format(GENRES_NOT_VALID, genreIds));
-        }
-
-        film.setName(newFilm.getName());
-        film.setDescription(newFilm.getDescription());
-        film.setReleaseDate(newFilm.getReleaseDate());
-        film.setDuration(newFilm.getDuration());
-        film.setMpa(mpaRating);
-        film.setGenres(genres);
-        film.setLikes(likes);
-
-        return filmRepository.update(film);
+        return filmRepository.update(newFilm);
     }
 
+    @Override
     public Film likeFilm(long filmId, long userId) {
-        return editLike(filmId, userId, likeRepository::addLike);
+        Film result = editLike(filmId, userId, likeRepository::addLike);
+        likeRepository.eventLike(filmId, userId, OperationType.ADD);
+        return result;
     }
 
-    public Film removeLike(long filmId, long userId) {
-        return editLike(filmId, userId, likeRepository::removeLike);
+    @Override
+    public Film deleteLike(long filmId, long userId) {
+        Film result = editLike(filmId, userId, likeRepository::removeLike);
+        likeRepository.eventLike(filmId, userId, OperationType.REMOVE);
+        return result;
     }
 
-    @GetMapping("/popular")
-    public List<Film> getMostPopularFilms(@RequestParam Optional<Long> count) {
-        return filmRepository.getTop(count.orElse(10L));
+    @Override
+    public List<Film> getMostPopularFilms(long count) {
+        return filmRepository.getTop(count);
     }
 
-    private Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        userRepository.getById(userId);
+        userRepository.getById(friendId);
+        return filmRepository.getCommonFilms(userId, friendId);
+    }
+
+    @Override
+    public List<Film> getFilmsByDirector(long directorId, String sortBy) {
+        directorRepository.getById(directorId)
+            .orElseThrow(() -> new NotFoundException(String.format(DIRECTOR_ID_NOT_FOUND, directorId)));
+        return filmRepository.getByDirectorId(directorId, sortBy);
+    }
+
+    @Override
+    public List<Film> getRecommendations(long userId) {
+        userRepository.getById(userId);
+        return filmRepository.getRecommendations(userId);
+    }
+
+    @Override
+    public Film deleteFilmById(long filmId) {
+        Film film = filmRepository.getById(filmId)
+            .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
+        filmRepository.delete(filmId);
+        return film;
+    }
+
+    @Override
+    public List<Film> getTopPopularFilms(Long limit, Long genreId, Long year) {
+        return filmRepository.getTopPopularFilms(limit, genreId, year);
+    }
+
+    @Override
+    public List<Film> searchFilms(String query, String by) {
+        return filmRepository.searchFilms(query, by);
+    }
+
+    <T> List<T> getValidatedEntities(Set<T> entitySet, Function<T, Long> idExtractor,
+                                     Function<List<Long>, List<T>> convertIds, String errorMessage) {
+        List<Long> entityIds = entitySet.stream().map(idExtractor).toList();
+        List<T> entities = convertIds.apply(entityIds);
+        if (entityIds.size() != entities.size()) {
+            throw new ValidationException(String.format(errorMessage, entities));
+        }
+        return entities;
+    }
+
+
+    Film editLike(long filmId, long userId, BiConsumer<Long, Long> action) {
+        Film film = filmRepository.getById(filmId)
+            .orElseThrow(() -> new NotFoundException(String.format(FILM_ID_NOT_FOUND, filmId)));
+        userRepository.getById(userId)
+            .orElseThrow(() -> new NotFoundException(String.format(USER_ID_NOT_FOUND, userId)));
         action.accept(filmId, userId);
-        return getFilmById(filmId);
+        return film;
     }
 
-    private Film mapToSortedFields(Film film) {
+    Film mapToSortedFields(Film film) {
         film.setGenres(film.getGenres()
-                .stream()
-                .sorted(Comparator.comparingLong(Genre::getId))
-                .collect(Collectors.toCollection(LinkedHashSet::new)));
+            .stream()
+            .sorted(Comparator.comparingLong(Genre::getId))
+            .collect(Collectors.toCollection(LinkedHashSet::new)));
         return film;
     }
 }
